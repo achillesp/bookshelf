@@ -95,7 +95,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - [x] **Library shelves, quick menu, Search and Library Entry pages** (AFK)
   - AC: Library covers on shelf rows; Status, Rating and Remove work from each cover's menu by keyboard and touch; filters, sort, pagination unchanged; Search and Library Entry restyled with covers prominent; typing Notes then changing Status keeps the typed text; flashes reworded; Library and Search tests green
   - Blocked by: Task 1
-- [ ] **Public homepage with guest-only route** (HITL: copy and layout review)
+- [x] **Public homepage with guest-only route** (HITL: copy and layout review)
   - AC: guest sees Hero, How it works, Peek inside, CTA, footer at 1280px and 375px; signed-in `/` redirects to `/dashboard` (`ExampleTest.php`)
   - Blocked by: Task 1
 - [ ] **Auth screens with illustration** (AFK)
@@ -133,6 +133,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - Task 3: the four nav items live in `resources/js/lib/mainNav.ts`, shared by `AppHeader` and `BottomTabBar`. `AppContent` now centres every page at `max-w-6xl`, and the unused `--sidebar-*` tokens were removed. The Toaster's bottom offset follows a `--toast-bottom` variable so toasts clear the bottom tabs up to `md`. The starter's unused `Breadcrumbs.vue` went with the sidebar; `library/Show.vue` lost its breadcrumbs (Task 5 restyles it).
 - Task 2: the Dashboard's inline bar chart was swapped for `MonthlyBarChart` in this task rather than Task 4, so only one copy of the chart exists.
 - Task 5: the quick menu is `components/LibraryEntryMenu.vue` (emits `status`, `rating`, `remove`) and the per-cover pill is `components/ReadingStatusBadge.vue`. The Reading pill uses mustard as a fill, so `--mustard` / `--mustard-foreground` (`#E9B949` / `#3B2A20`, 7.5:1, same in both modes) joined the tokens. When the remove dialog closes, focus returns to that Book's menu button, or to the Library heading once the Book is gone. `library/Show.vue` gained a "Back to your Library" link in place of the breadcrumbs.
+- Task 6 (HITL, 2026-11-05): the user approved the homepage after one round. "A peek inside" changed from a Dashboard mock (plain colour blocks, unlabelled numbers, a sparkline) to a sample Library shelf with three made-up Books with drawn covers (`components/decor/SampleCover.vue`, fixed colours like printed covers) plus three labelled numbers; no graph. The decor set is `components/decor/ReadingNook.vue` (hero slot, reused on auth screens) and `SampleCover.vue`. Homepage copy uses the configured app name (`page.props.name`).
 - New task (agreed with the user during Task 5): with the Vite dev server running, `public/hot` makes Inertia call `/__inertia_ssr` on the dev server, and `Http::preventStrayRequests` failed all 11 HTTP-faking `SearchTest` cases, before this branch too. SSR is now off in tests through `INERTIA_SSR_ENABLED`.
 
 ## Risks & Dependencies

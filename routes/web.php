@@ -6,7 +6,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatsController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
+Route::inertia('/', 'Welcome')->middleware('guest')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
