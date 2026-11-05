@@ -19,4 +19,9 @@ class OpenLibraryException extends RuntimeException
     {
         return new self(__("You've reached the search limit. Please wait a minute and try again."));
     }
+
+    public static function busy(): self
+    {
+        return new self(__('Book search is busy right now. Please try again in a moment.'));
+    }
 }

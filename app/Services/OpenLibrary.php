@@ -36,6 +36,13 @@ class OpenLibrary
 
     private const int READER_LIMIT_DECAY_SECONDS = 60;
 
+    /** OpenLibrary allows identified clients 3 requests a second, shared by all Readers. */
+    private const int GLOBAL_LIMIT = 3;
+
+    private const int GLOBAL_LIMIT_DECAY_SECONDS = 1;
+
+    private const string GLOBAL_LIMIT_KEY = 'openlibrary:global';
+
     private const int TIMEOUT_SECONDS = 3;
 
     private const int CONNECT_TIMEOUT_SECONDS = 2;
@@ -116,7 +123,12 @@ class OpenLibrary
             throw OpenLibraryException::readerLimitReached();
         }
 
+        if (RateLimiter::tooManyAttempts(self::GLOBAL_LIMIT_KEY, self::GLOBAL_LIMIT)) {
+            throw OpenLibraryException::busy();
+        }
+
         RateLimiter::hit($readerKey, self::READER_LIMIT_DECAY_SECONDS);
+        RateLimiter::hit(self::GLOBAL_LIMIT_KEY, self::GLOBAL_LIMIT_DECAY_SECONDS);
 
         try {
             $docs = Http::withUserAgent('BookShelf ('.config('services.openlibrary.contact').')')

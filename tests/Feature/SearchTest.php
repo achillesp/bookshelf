@@ -123,8 +123,10 @@ test('search shows an unavailable message when OpenLibrary returns a server erro
 test('the 21st uncached search in a minute is rejected without calling OpenLibrary', function () {
     fakeOpenLibrarySearch();
     $user = User::factory()->create();
+    $this->freezeTime();
     foreach (range(1, 20) as $number) {
         $this->actingAs($user)->get(route('search', ['q' => "dune {$number}"]));
+        $this->travel(1)->seconds();
     }
 
     $response = $this->actingAs($user)->get(route('search', ['q' => 'dune 21']));
@@ -144,8 +146,10 @@ test('the search limit is counted per Reader', function () {
     fakeOpenLibrarySearch();
     $reader = User::factory()->create();
     $otherReader = User::factory()->create();
+    $this->freezeTime();
     foreach (range(1, 20) as $number) {
         $this->actingAs($otherReader)->get(route('search', ['q' => "dune {$number}"]));
+        $this->travel(1)->seconds();
     }
 
     $response = $this->actingAs($reader)->get(route('search', ['q' => 'dune 21']));
@@ -174,4 +178,39 @@ test('search marks results already in the Reader Library', function () {
     $response = $this->actingAs($reader)->get(route('search', ['q' => 'dune']));
 
     $response->assertInertia(fn (Assert $page) => $page->where('inLibrary', ['OL893414W']));
+});
+
+test('a 4th uncached OpenLibrary call within one second is rejected as busy without costing the Reader', function () {
+    fakeOpenLibrarySearch();
+    $this->freezeTime();
+    foreach (range(1, 3) as $number) {
+        $this->actingAs(User::factory()->create())->get(route('search', ['q' => "dune {$number}"]));
+    }
+    $reader = User::factory()->create();
+
+    $response = $this->actingAs($reader)->get(route('search', ['q' => 'dune 4']));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('results', [])
+        ->where('error', 'Book search is busy right now. Please try again in a moment.')
+        ->hasFlash('toast.type', 'error')
+        ->hasFlash('toast.message', 'Book search is busy right now. Please try again in a moment.'),
+    );
+    Http::assertSentCount(3);
+    expect(RateLimiter::attempts('openlibrary:'.$reader->id))->toBe(0);
+});
+
+test('OpenLibrary calls are allowed again once the busy second has passed', function () {
+    fakeOpenLibrarySearch();
+    $this->freezeTime();
+    $reader = User::factory()->create();
+    foreach (range(1, 3) as $number) {
+        $this->actingAs($reader)->get(route('search', ['q' => "dune {$number}"]));
+    }
+    $this->travel(1)->seconds();
+
+    $response = $this->actingAs($reader)->get(route('search', ['q' => 'dune 4']));
+
+    $response->assertInertia(fn (Assert $page) => $page->has('results', 2)->where('error', null));
+    Http::assertSentCount(4);
 });
