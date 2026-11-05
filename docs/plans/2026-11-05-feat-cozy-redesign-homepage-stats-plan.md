@@ -89,7 +89,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - [x] **Top bar and mobile bottom tabs replace the sidebar** (AFK)
   - AC: Dashboard · Search · Library · Stats with active state at 1280px and 375px; avatar menu reaches Settings and Log out; no sidebar renders and `components/ui/sidebar` is gone; toasts still show
   - Blocked by: Task 2
-- [ ] **Dashboard reading corner with stats summary** (AFK)
+- [x] **Dashboard reading corner with stats summary** (AFK)
   - AC: greeting, Reading covers, 4 tiles, sparkline with sr-only table, link to Stats; new-voice empty states; `DashboardTest.php` asserts summary props and that `?year=2020` is a 200
   - Blocked by: Task 2
 - [ ] **Library shelves, quick menu, Search and Library Entry pages** (AFK)

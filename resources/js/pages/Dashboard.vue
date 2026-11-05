@@ -1,198 +1,198 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
-import { Search } from '@lucide/vue';
-import { computed } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { ArrowRight, Search } from '@lucide/vue';
+import { computed, onMounted, ref } from 'vue';
 import BookCover from '@/components/BookCover.vue';
 import MonthlyBarChart from '@/components/MonthlyBarChart.vue';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { dashboard, search } from '@/routes';
+import { search, stats } from '@/routes';
 import { index as library, show } from '@/routes/library';
-import { READING_STATUS, READING_STATUS_LABELS } from '@/types';
+import { READING_STATUS } from '@/types';
 import type { LibraryEntry, ReadingStatus } from '@/types';
 
 const props = defineProps<{
     reading: LibraryEntry[];
     statusCounts: Record<ReadingStatus, number>;
     year: number;
-    years: number[];
     completedPerMonth: number[];
-    topAuthors: { id: number; name: string; completed_books: number }[];
 }>();
 
-const statuses = Object.values(READING_STATUS).map((status) => ({
-    label: READING_STATUS_LABELS[status],
-    count: props.statusCounts[status],
-    href: library({ query: { status } }),
-}));
+const page = usePage();
 
-const completedInYear = computed(() =>
+const firstName = computed(
+    () => page.props.auth.user.name.trim().split(/\s+/)[0] ?? '',
+);
+
+/**
+ * The server render has no Reader timezone, so it greets neutrally and the
+ * browser swaps in a time-of-day greeting once it knows the local hour.
+ */
+const greeting = ref(`Welcome back, ${firstName.value}`);
+
+onMounted(() => {
+    const hour = new Date().getHours();
+
+    if (hour >= 5 && hour < 12) {
+        greeting.value = `Good morning, ${firstName.value}`;
+    } else if (hour >= 12 && hour < 17) {
+        greeting.value = `Good afternoon, ${firstName.value}`;
+    } else if (hour >= 17 && hour < 22) {
+        greeting.value = `Good evening, ${firstName.value}`;
+    } else {
+        greeting.value = `Still up, ${firstName.value}?`;
+    }
+});
+
+const completedThisYear = computed(() =>
     props.completedPerMonth.reduce((total, count) => total + count, 0),
 );
 
-function showYear(value: unknown): void {
-    router.get(
-        dashboard.url({ query: { year: String(value) } }),
-        {},
-        { preserveScroll: true, preserveState: true },
-    );
+const tiles = computed(() => [
+    {
+        label: `Completed in ${props.year}`,
+        count: completedThisYear.value,
+        href: stats(),
+    },
+    {
+        label: 'Reading now',
+        count: props.statusCounts.reading,
+        href: library({ query: { status: READING_STATUS.READING } }),
+    },
+    {
+        label: 'Want to Read',
+        count: props.statusCounts.want_to_read,
+        href: library({ query: { status: READING_STATUS.WANT_TO_READ } }),
+    },
+    {
+        label: 'Completed all time',
+        count: props.statusCounts.completed,
+        href: library({ query: { status: READING_STATUS.COMPLETED } }),
+    },
+]);
+
+function authorNames(entry: LibraryEntry): string {
+    return entry.book.authors.map((author) => author.name).join(', ');
 }
 </script>
 
 <template>
     <Head title="Dashboard" />
 
-    <div class="flex h-full flex-1 flex-col gap-6 p-4">
-        <h1 class="sr-only">Dashboard</h1>
+    <div class="flex flex-col gap-10 px-4 py-8">
+        <header class="flex flex-col gap-1">
+            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+                {{ greeting }}
+            </h1>
+            <p class="text-muted-foreground">
+                Here's what's on your nightstand.
+            </p>
+        </header>
 
-        <section aria-labelledby="status-heading" class="grid gap-3">
-            <h2 id="status-heading" class="sr-only">
-                Library by Reading Status
+        <section aria-labelledby="reading-heading" class="flex flex-col gap-4">
+            <h2 id="reading-heading" class="text-xl font-bold">
+                Currently Reading
             </h2>
-            <ul class="grid gap-4 sm:grid-cols-3">
-                <li v-for="status in statuses" :key="status.label">
-                    <Link
-                        :href="status.href"
-                        class="flex flex-col gap-1 rounded-xl border border-border p-4 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                    >
-                        <span class="text-sm text-muted-foreground">
-                            {{ status.label }}
-                        </span>
-                        <span class="text-3xl font-semibold tabular-nums">
-                            {{ status.count }}
-                        </span>
-                    </Link>
-                </li>
-            </ul>
-        </section>
-
-        <section
-            aria-labelledby="reading-heading"
-            class="flex flex-col gap-3 rounded-xl border border-border p-4"
-        >
-            <h2 id="reading-heading" class="font-medium">Currently Reading</h2>
             <ul
                 v-if="reading.length > 0"
-                class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-4"
+                class="grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-6 sm:grid-cols-[repeat(auto-fill,minmax(10rem,1fr))]"
             >
                 <li v-for="entry in reading" :key="entry.id">
                     <Link
                         :href="show(entry.id)"
-                        class="flex flex-col gap-2 rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        class="group flex flex-col gap-3 rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background focus-visible:outline-none"
                     >
                         <BookCover
                             :cover-id="entry.book.cover_id"
                             :title="entry.book.title"
-                            class="w-full"
+                            size="L"
+                            class="w-full rounded-lg shadow-md transition-transform duration-200 group-hover:-translate-y-1 group-hover:shadow-lg"
                         />
-                        <span class="line-clamp-2 text-sm font-medium">
-                            {{ entry.book.title }}
-                        </span>
-                        <span
-                            v-if="entry.book.authors.length > 0"
-                            class="line-clamp-1 text-xs text-muted-foreground"
-                        >
-                            {{
-                                entry.book.authors
-                                    .map((author) => author.name)
-                                    .join(', ')
-                            }}
+                        <span class="flex flex-col gap-0.5">
+                            <span class="line-clamp-2 font-semibold">
+                                {{ entry.book.title }}
+                            </span>
+                            <span
+                                v-if="entry.book.authors.length > 0"
+                                class="line-clamp-1 text-sm text-muted-foreground"
+                            >
+                                {{ authorNames(entry) }}
+                            </span>
                         </span>
                     </Link>
                 </li>
             </ul>
-            <div v-else class="flex flex-col items-start gap-3">
-                <p class="text-sm text-muted-foreground">
-                    Nothing on the go. Move a Book to Reading to see it here.
+            <div
+                v-else
+                class="flex flex-col items-start gap-4 rounded-2xl border border-dashed bg-card p-6"
+            >
+                <p class="text-muted-foreground">
+                    Nothing on your nightstand yet. Pick something to start and
+                    it'll wait for you here.
                 </p>
-                <Button as-child variant="outline" size="sm">
+                <Button as-child>
                     <Link :href="search()">
                         <Search />
-                        Find a book
+                        Find your next read
                     </Link>
                 </Button>
             </div>
         </section>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <section
-                aria-labelledby="months-heading"
-                class="flex flex-col gap-4 rounded-xl border border-border p-4 lg:col-span-2"
+        <section aria-labelledby="summary-heading" class="flex flex-col gap-4">
+            <h2 id="summary-heading" class="text-xl font-bold">
+                Your reading at a glance
+            </h2>
+            <ul
+                class="grid grid-cols-2 gap-4 lg:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]"
             >
-                <div class="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <h2 id="months-heading" class="font-medium">
-                            Completed Books by month
-                        </h2>
-                        <p class="text-sm text-muted-foreground">
-                            {{ completedInYear }}
-                            {{ completedInYear === 1 ? 'Book' : 'Books' }}
-                            completed in {{ year }}
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <Label for="year">Year</Label>
-                        <Select
-                            :model-value="String(year)"
-                            @update:model-value="showYear"
-                        >
-                            <SelectTrigger id="year" class="w-28">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="option in years"
-                                    :key="option"
-                                    :value="String(option)"
-                                >
-                                    {{ option }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                <MonthlyBarChart :counts="completedPerMonth" :year="year" />
-            </section>
-
-            <section
-                aria-labelledby="authors-heading"
-                class="flex flex-col gap-3 rounded-xl border border-border p-4"
-            >
-                <h2 id="authors-heading" class="font-medium">Top Authors</h2>
-                <ol v-if="topAuthors.length > 0" class="flex flex-col gap-2">
-                    <li
-                        v-for="(author, position) in topAuthors"
-                        :key="author.id"
-                        class="flex items-baseline gap-3 text-sm"
+                <li v-for="tile in tiles" :key="tile.label">
+                    <Link
+                        :href="tile.href"
+                        class="flex h-full flex-col gap-1 rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:p-5"
                     >
                         <span
-                            class="w-5 text-right text-muted-foreground tabular-nums"
+                            class="font-display text-3xl font-bold tabular-nums sm:text-4xl"
                         >
-                            {{ position + 1 }}.
+                            {{ tile.count }}
                         </span>
-                        <span class="min-w-0 flex-1 truncate">
-                            {{ author.name }}
+                        <span class="text-sm text-muted-foreground">
+                            {{ tile.label }}
                         </span>
-                        <span class="text-muted-foreground tabular-nums">
-                            {{ author.completed_books }}
-                            {{
-                                author.completed_books === 1 ? 'Book' : 'Books'
-                            }}
-                        </span>
-                    </li>
-                </ol>
-                <p v-else class="text-sm text-muted-foreground">
-                    Complete a Book to see your most-read Authors.
-                </p>
-            </section>
-        </div>
+                    </Link>
+                </li>
+            </ul>
+
+            <div
+                class="flex flex-col gap-4 rounded-2xl border bg-card p-5 shadow-sm sm:flex-row sm:items-end sm:gap-8"
+            >
+                <div class="flex flex-col gap-1 sm:w-56 sm:shrink-0">
+                    <h3 class="font-bold">Your {{ year }} so far</h3>
+                    <p class="text-sm text-muted-foreground">
+                        <template v-if="completedThisYear > 0">
+                            {{ completedThisYear }}
+                            {{ completedThisYear === 1 ? 'Book' : 'Books' }}
+                            finished, month by month.
+                        </template>
+                        <template v-else>
+                            Your first finished Book of the year will show up
+                            here.
+                        </template>
+                    </p>
+                    <Link
+                        :href="stats()"
+                        class="mt-2 inline-flex items-center gap-1 self-start rounded-md text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    >
+                        See all your stats
+                        <ArrowRight aria-hidden="true" class="size-4" />
+                    </Link>
+                </div>
+                <MonthlyBarChart
+                    :counts="completedPerMonth"
+                    :year="year"
+                    compact
+                    class="min-w-0 flex-1"
+                />
+            </div>
+        </section>
     </div>
 </template>
