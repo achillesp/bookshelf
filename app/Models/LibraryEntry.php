@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Validation\ValidationException;
 
 /**
  * A Reader's personal record of one Book in their Library.
@@ -83,5 +84,19 @@ class LibraryEntry extends Model
                 'finished_on' => today(),
             ]),
         };
+    }
+
+    /**
+     * Reject a Finished Date before the Started Date, checked on the entry's current (unsaved) dates.
+     *
+     * @throws ValidationException
+     */
+    public function ensureDatesAreInOrder(): void
+    {
+        if ($this->started_on !== null && $this->finished_on !== null && $this->finished_on->lt($this->started_on)) {
+            throw ValidationException::withMessages([
+                'finished_on' => __('The Finished Date cannot be before the Started Date.'),
+            ]);
+        }
     }
 }

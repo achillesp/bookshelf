@@ -68,7 +68,17 @@ class LibraryEntryController extends Controller
     }
 
     /**
-     * Update a Library Entry's Reading Status or Rating.
+     * Show one Library Entry with its dates and Notes.
+     */
+    public function show(Request $request, int $entry): Response
+    {
+        $libraryEntry = $this->findEntry($request, $entry)->load('book.authors');
+
+        return Inertia::render('library/Show', ['entry' => $libraryEntry]);
+    }
+
+    /**
+     * Update a Library Entry; the status rules set the dates first, then dates sent by the Reader apply.
      */
     public function update(UpdateLibraryEntryRequest $request, int $entry): RedirectResponse
     {
@@ -78,7 +88,9 @@ class LibraryEntryController extends Controller
             $libraryEntry->changeStatus($request->enum('status', ReadingStatus::class));
         }
 
-        $libraryEntry->fill($request->safe()->only(['rating']))->save();
+        $libraryEntry->fill($request->safe()->only(['rating', 'notes', 'started_on', 'finished_on']));
+        $libraryEntry->ensureDatesAreInOrder();
+        $libraryEntry->save();
 
         return back();
     }

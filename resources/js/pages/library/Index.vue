@@ -24,7 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { search } from '@/routes';
-import { destroy, index, update } from '@/routes/library';
+import { destroy, index, show, update } from '@/routes/library';
 import { READING_STATUS_LABELS } from '@/types';
 import type { LibraryEntry, Paginated, ReadingStatus } from '@/types';
 
@@ -232,7 +232,14 @@ function formatDate(date: string): string {
                     class="w-16"
                 />
                 <div class="flex min-w-0 flex-1 flex-col gap-1">
-                    <h2 class="font-medium">{{ entry.book.title }}</h2>
+                    <h2 class="font-medium">
+                        <Link
+                            :href="show(entry.id)"
+                            class="hover:underline focus-visible:underline"
+                        >
+                            {{ entry.book.title }}
+                        </Link>
+                    </h2>
                     <p
                         v-if="entry.book.authors.length > 0"
                         class="text-sm text-muted-foreground"

@@ -85,7 +85,7 @@ erDiagram
 - [x] **Library page: browse, quick edit, remove** (AFK)
   - AC: filter/sort/paginate keep the query string; inline status/rating persist and apply date rules; remove after confirm; other Readers' entries → 404; Library in sidebar
   - Blocked by: Task 2
-- [ ] **Library Entry page: dates and Notes** (AFK)
+- [x] **Library Entry page: dates and Notes** (AFK)
   - AC: edit status, rating, dates, notes; future dates or Finished < Started show errors; shows ~pages
   - Blocked by: Task 3 (extends its update endpoint)
 - [ ] **Dashboard stats** (AFK)

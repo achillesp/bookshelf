@@ -69,3 +69,90 @@ test('another Reader entry cannot be updated', function () {
     $response->assertNotFound();
     expect($entry->refresh()->rating)->toBe(3);
 });
+
+test('the dates and Notes can be edited', function () {
+    $reader = User::factory()->create();
+    $entry = LibraryEntry::factory()->for($reader)->completed('2026-10-15', '2026-10-01')->create();
+
+    $this->actingAs($reader)->patch(route('library.update', $entry), [
+        'started_on' => '2019-02-01',
+        'finished_on' => '2019-03-10',
+        'notes' => 'Read it on holiday.',
+    ]);
+
+    $entry->refresh();
+    expect($entry->started_on?->toDateString())->toBe('2019-02-01')
+        ->and($entry->finished_on?->toDateString())->toBe('2019-03-10')
+        ->and($entry->notes)->toBe('Read it on holiday.')
+        ->and($entry->status)->toBe(ReadingStatus::Completed);
+});
+
+test('dates sent with a status change replace the dates the status rules set', function () {
+    $reader = User::factory()->create();
+    $entry = LibraryEntry::factory()->for($reader)->create();
+
+    $this->actingAs($reader)->patch(route('library.update', $entry), [
+        'status' => ReadingStatus::Completed->value,
+        'started_on' => '2019-02-01',
+        'finished_on' => '2019-03-10',
+    ]);
+
+    $entry->refresh();
+    expect($entry->started_on?->toDateString())->toBe('2019-02-01')
+        ->and($entry->finished_on?->toDateString())->toBe('2019-03-10');
+});
+
+test('a status change alone sets the Finished Date to today', function () {
+    $reader = User::factory()->create();
+    $entry = LibraryEntry::factory()->for($reader)->reading('2026-10-01')->create();
+
+    $this->actingAs($reader)->patch(route('library.update', $entry), ['status' => ReadingStatus::Completed->value]);
+
+    expect($entry->refresh()->finished_on?->toDateString())->toBe('2026-11-05');
+});
+
+test('the update rejects future dates', function (string $field, string $message) {
+    $reader = User::factory()->create();
+    $entry = LibraryEntry::factory()->for($reader)->reading('2026-10-01')->create();
+
+    $response = $this->actingAs($reader)->patch(route('library.update', $entry), [$field => '2026-11-06']);
+
+    $response->assertSessionHasErrors([$field => $message]);
+    expect($entry->refresh()->started_on?->toDateString())->toBe('2026-10-01');
+})->with([
+    'Started Date' => ['started_on', 'The Started Date field must be a date before or equal to today.'],
+    'Finished Date' => ['finished_on', 'The Finished Date field must be a date before or equal to today.'],
+]);
+
+test('the update rejects a Finished Date before the Started Date sent with it', function () {
+    $reader = User::factory()->create();
+    $entry = LibraryEntry::factory()->for($reader)->completed('2026-10-15', '2026-10-01')->create();
+
+    $response = $this->actingAs($reader)->patch(route('library.update', $entry), [
+        'started_on' => '2026-09-10',
+        'finished_on' => '2026-09-01',
+    ]);
+
+    $response->assertSessionHasErrors(['finished_on' => 'The Finished Date cannot be before the Started Date.']);
+    expect($entry->refresh()->started_on?->toDateString())->toBe('2026-10-01');
+});
+
+test('the update rejects a Finished Date before the stored Started Date', function () {
+    $reader = User::factory()->create();
+    $entry = LibraryEntry::factory()->for($reader)->completed('2026-10-15', '2026-10-01')->create();
+
+    $response = $this->actingAs($reader)->patch(route('library.update', $entry), ['finished_on' => '2026-09-01']);
+
+    $response->assertSessionHasErrors(['finished_on' => 'The Finished Date cannot be before the Started Date.']);
+    expect($entry->refresh()->finished_on?->toDateString())->toBe('2026-10-15');
+});
+
+test('the update rejects Notes longer than 10,000 characters', function () {
+    $reader = User::factory()->create();
+    $entry = LibraryEntry::factory()->for($reader)->create();
+
+    $response = $this->actingAs($reader)->patch(route('library.update', $entry), ['notes' => str_repeat('a', 10_001)]);
+
+    $response->assertSessionHasErrors(['notes' => 'The Notes field must not be greater than 10000 characters.']);
+    expect($entry->refresh()->notes)->toBeNull();
+});

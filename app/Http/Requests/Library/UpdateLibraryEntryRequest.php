@@ -19,6 +19,23 @@ class UpdateLibraryEntryRequest extends FormRequest
         return [
             'status' => ['sometimes', 'required', Rule::enum(ReadingStatus::class)],
             'rating' => ['sometimes', 'nullable', 'integer', 'between:1,5'],
+            'notes' => ['sometimes', 'nullable', 'string', 'max:10000'],
+            'started_on' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'finished_on' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'notes' => 'Notes',
+            'started_on' => 'Started Date',
+            'finished_on' => 'Finished Date',
         ];
     }
 }

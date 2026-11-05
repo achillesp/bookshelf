@@ -11,6 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('search', SearchController::class)->name('search');
     Route::get('library', [LibraryEntryController::class, 'index'])->name('library.index');
     Route::post('library', [LibraryEntryController::class, 'store'])->name('library.store');
+    Route::get('library/{entry}', [LibraryEntryController::class, 'show'])->whereNumber('entry')->name('library.show');
     Route::patch('library/{entry}', [LibraryEntryController::class, 'update'])->whereNumber('entry')->name('library.update');
     Route::delete('library/{entry}', [LibraryEntryController::class, 'destroy'])->whereNumber('entry')->name('library.destroy');
 });
