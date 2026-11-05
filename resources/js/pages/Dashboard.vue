@@ -218,29 +218,31 @@ function showYear(value: unknown): void {
                     </span>
                 </div>
 
-                <table class="sr-only">
-                    <caption>
-                        Completed Books per month in
-                        {{
-                            year
-                        }}
-                    </caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">Month</th>
-                            <th scope="col">Completed Books</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="(count, month) in completedPerMonth"
-                            :key="month"
-                        >
-                            <th scope="row">{{ MONTHS[month] }}</th>
-                            <td>{{ count }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="sr-only">
+                    <table>
+                        <caption>
+                            Completed Books per month in
+                            {{
+                                year
+                            }}
+                        </caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Month</th>
+                                <th scope="col">Completed Books</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="(count, month) in completedPerMonth"
+                                :key="month"
+                            >
+                                <th scope="row">{{ MONTHS[month] }}</th>
+                                <td>{{ count }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             <section
