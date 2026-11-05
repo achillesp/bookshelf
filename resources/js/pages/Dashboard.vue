@@ -18,17 +18,6 @@ import { index as library, show } from '@/routes/library';
 import { READING_STATUS, READING_STATUS_LABELS } from '@/types';
 import type { LibraryEntry, ReadingStatus } from '@/types';
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Dashboard',
-                href: dashboard(),
-            },
-        ],
-    },
-});
-
 const props = defineProps<{
     reading: LibraryEntry[];
     statusCounts: Record<ReadingStatus, number>;
@@ -132,7 +121,7 @@ function showYear(value: unknown): void {
             </div>
         </section>
 
-        <div class="grid gap-6 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <section
                 aria-labelledby="months-heading"
                 class="flex flex-col gap-4 rounded-xl border border-border p-4 lg:col-span-2"

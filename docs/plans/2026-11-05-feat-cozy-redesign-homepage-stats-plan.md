@@ -86,7 +86,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - [x] **Stats page backed by ReadingStats** (AFK)
   - AC: queries live in `ReadingStats` and `DashboardTest.php` still passes before the page is added; `/stats` shows status counts, month chart with year select, top Authors; `StatsTest.php` covers year, years, empty `?year=`, rejected years, top Authors, guest and unverified redirects; the nav link arrives with Task 3
   - Blocked by: Task 1
-- [ ] **Top bar and mobile bottom tabs replace the sidebar** (AFK)
+- [x] **Top bar and mobile bottom tabs replace the sidebar** (AFK)
   - AC: Dashboard · Search · Library · Stats with active state at 1280px and 375px; avatar menu reaches Settings and Log out; no sidebar renders and `components/ui/sidebar` is gone; toasts still show
   - Blocked by: Task 2
 - [ ] **Dashboard reading corner with stats summary** (AFK)
@@ -127,6 +127,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - Task 1: `AppLogoIcon.vue` already existed (the starter's Laravel mark) and was rewritten, not created. The stock `Welcome.vue` still carries the Laravel mark until Task 6 replaces the page.
 - Task 1: Inertia's progress bar uses `var(--primary)` instead of a fixed hex, so it follows the mode.
 - Task 2 (Premise Break, patched with the user): email verification is off (`User` does not implement `MustVerifyEmail`, no `verification.notice` route), so `verified` lets every signed-in Reader through and an "unverified redirect" test cannot exist. `/stats` stays in the `auth`+`verified` group like the Dashboard; `StatsTest.php` covers the guest redirect only.
+- Task 3: the four nav items live in `resources/js/lib/mainNav.ts`, shared by `AppHeader` and `BottomTabBar`. `AppContent` now centres every page at `max-w-6xl`, and the unused `--sidebar-*` tokens were removed. The Toaster's bottom offset follows a `--toast-bottom` variable so toasts clear the bottom tabs up to `md`. The starter's unused `Breadcrumbs.vue` went with the sidebar; `library/Show.vue` lost its breadcrumbs (Task 5 restyles it).
 - Task 2: the Dashboard's inline bar chart was swapped for `MonthlyBarChart` in this task rather than Task 4, so only one copy of the chart exists.
 
 ## Risks & Dependencies

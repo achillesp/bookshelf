@@ -28,17 +28,6 @@ import { destroy, index, show, update } from '@/routes/library';
 import { READING_STATUS_LABELS } from '@/types';
 import type { LibraryEntry, Paginated, ReadingStatus } from '@/types';
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Library',
-                href: index(),
-            },
-        ],
-    },
-});
-
 type LibrarySort = 'updated' | 'title' | 'finished';
 
 const props = defineProps<{

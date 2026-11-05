@@ -14,17 +14,6 @@ import { store } from '@/routes/library';
 import { READING_STATUS } from '@/types';
 import type { ReadingStatus, SearchResult } from '@/types';
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Search',
-                href: search(),
-            },
-        ],
-    },
-});
-
 defineProps<{
     query: string;
     results: SearchResult[];

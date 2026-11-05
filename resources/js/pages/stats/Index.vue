@@ -16,17 +16,6 @@ import { index as library } from '@/routes/library';
 import { READING_STATUS, READING_STATUS_LABELS } from '@/types';
 import type { ReadingStatus } from '@/types';
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Stats',
-                href: stats(),
-            },
-        ],
-    },
-});
-
 const props = defineProps<{
     statusCounts: Record<ReadingStatus, number>;
     year: number;
@@ -69,7 +58,7 @@ function showYear(value: unknown): void {
 <template>
     <Head title="Stats" />
 
-    <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8">
+    <div class="flex flex-col gap-8 px-4 py-8">
         <header class="flex flex-col gap-1">
             <h1 class="text-3xl font-bold tracking-tight">
                 Your reading stats
@@ -110,7 +99,7 @@ function showYear(value: unknown): void {
             </ul>
         </section>
 
-        <div class="grid gap-6 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <section
                 aria-labelledby="months-heading"
                 class="flex flex-col gap-6 rounded-2xl border bg-card p-5 shadow-sm lg:col-span-2"

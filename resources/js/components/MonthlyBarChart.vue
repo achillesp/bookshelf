@@ -32,7 +32,7 @@ const max = computed(() => Math.max(1, ...props.counts));
         <div
             aria-hidden="true"
             class="flex items-end border-b border-border"
-            :class="compact ? 'h-12 gap-0.5' : 'h-48 gap-1.5'"
+            :class="compact ? 'h-12 gap-0.5' : 'h-48 gap-1 sm:gap-1.5'"
         >
             <div
                 v-for="(count, month) in counts"
@@ -56,11 +56,11 @@ const max = computed(() => Math.max(1, ...props.counts));
                 />
             </div>
         </div>
-        <div v-if="!compact" aria-hidden="true" class="flex gap-1.5">
+        <div v-if="!compact" aria-hidden="true" class="flex gap-1 sm:gap-1.5">
             <span
                 v-for="month in MONTHS"
                 :key="month"
-                class="flex-1 text-center text-xs text-muted-foreground"
+                class="min-w-0 flex-1 text-center text-[0.6875rem] text-muted-foreground sm:text-xs"
             >
                 {{ month }}
             </span>

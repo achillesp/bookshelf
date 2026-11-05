@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import BookCover from '@/components/BookCover.vue';
 import InputError from '@/components/InputError.vue';
@@ -8,19 +8,12 @@ import ReadingStatusSelect from '@/components/ReadingStatusSelect.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { index, show, update } from '@/routes/library';
+import { update } from '@/routes/library';
 import type { LibraryEntry, ReadingStatus } from '@/types';
 
 const props = defineProps<{
     entry: LibraryEntry;
 }>();
-
-setLayoutProps({
-    breadcrumbs: [
-        { title: 'Library', href: index() },
-        { title: props.entry.book.title, href: show(props.entry.id) },
-    ],
-});
 
 const savedMessage = ref('');
 
