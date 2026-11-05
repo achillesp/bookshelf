@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('books', function (Blueprint $table) {
             $table->id();
             $table->string('openlibrary_id')->unique();
-            $table->string('title');
+            $table->string('title', 1024);
             $table->unsignedSmallInteger('first_publish_year')->nullable();
             $table->unsignedBigInteger('cover_id')->nullable();
             $table->unsignedInteger('page_count_median')->nullable();

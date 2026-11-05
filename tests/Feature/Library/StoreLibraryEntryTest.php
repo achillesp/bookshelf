@@ -152,6 +152,33 @@ test('adding a work OpenLibrary does not return is rejected', function () {
         ->and(LibraryEntry::count())->toBe(0);
 });
 
+test('adding a work with an over-long title and Author name stores them cut to their column lengths', function () {
+    Http::preventStrayRequests();
+    Http::fake(['openlibrary.org/search.json*' => openLibraryResponse('work-long-title')]);
+    $reader = User::factory()->create();
+
+    $this->actingAs($reader)->post(route('library.store'), ['openlibrary_id' => 'OL45804W']);
+
+    $book = Book::sole();
+    expect(mb_strlen($book->title))->toBeGreaterThan(1000)->toBeLessThanOrEqual(1024)
+        ->and($book->title)->toStartWith('The Complete Works, Comprising Letters')
+        ->and(mb_strlen($book->authors->sole()->name))->toBeGreaterThan(500)->toBeLessThanOrEqual(512)
+        ->and($book->authors->sole()->openlibrary_id)->toBe('OL4327048A')
+        ->and(LibraryEntry::count())->toBe(1);
+});
+
+test('adding a work whose key is longer than its column is rejected', function () {
+    Http::preventStrayRequests();
+    Http::fake(['openlibrary.org/search.json*' => openLibraryResponse('work-long-key')]);
+    $reader = User::factory()->create();
+
+    $response = $this->actingAs($reader)->post(route('library.store'), ['openlibrary_id' => 'OL'.str_repeat('1', 300).'W']);
+
+    $response->assertSessionHasErrors(['openlibrary_id' => 'This book could not be found on OpenLibrary.']);
+    expect(Book::count())->toBe(0)
+        ->and(LibraryEntry::count())->toBe(0);
+});
+
 test('adding validates the work key and status', function (array $payload, string $field, string $message) {
     Http::preventStrayRequests();
     $reader = User::factory()->create();

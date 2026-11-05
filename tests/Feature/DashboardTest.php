@@ -72,6 +72,16 @@ test('the dashboard defaults to the current year and lists it even without Compl
     );
 });
 
+test('the dashboard falls back to the current year when year is empty', function () {
+    $this->travelTo('2026-11-05 10:00:00');
+    $reader = User::factory()->create();
+
+    $response = $this->actingAs($reader)->get(route('dashboard', ['year' => '']));
+
+    $response->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('year', 2026));
+});
+
 test('the dashboard ranks the top 10 Authors by Completed Books, counting a co-written Book for each Author', function () {
     $reader = User::factory()->create();
     $herbert = Author::factory()->create(['name' => 'Frank Herbert']);

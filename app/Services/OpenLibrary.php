@@ -47,6 +47,15 @@ class OpenLibrary
 
     private const int CONNECT_TIMEOUT_SECONDS = 2;
 
+    /** Column lengths of books.openlibrary_id and authors.openlibrary_id; longer keys are skipped. */
+    private const int KEY_MAX_LENGTH = 255;
+
+    /** Column length of books.title; longer titles are cut. */
+    private const int TITLE_MAX_LENGTH = 1024;
+
+    /** Column length of authors.name; longer names are cut. */
+    private const int AUTHOR_NAME_MAX_LENGTH = 512;
+
     /**
      * Search works by title, author or ISBN; each result is also cached under its work key.
      *
@@ -149,8 +158,10 @@ class OpenLibrary
         $works = [];
 
         foreach (is_array($docs) ? $docs : [] as $doc) {
-            if (is_array($doc) && is_string($doc['key'] ?? null) && is_string($doc['title'] ?? null)) {
-                $works[] = $this->mapWork($doc);
+            $work = is_array($doc) ? $this->mapWork($doc) : null;
+
+            if ($work !== null) {
+                $works[] = $work;
             }
         }
 
@@ -158,13 +169,26 @@ class OpenLibrary
     }
 
     /**
-     * Map one search document to a work; every field but key and title may be missing.
+     * Map one search document to a work, cutting strings to their column lengths.
+     *
+     * Every field but key and title may be missing; a document without them, or with a key
+     * longer than its column, is skipped, and so is an Author whose key is too long.
      *
      * @param  array<string, mixed>  $doc
-     * @return Work
+     * @return Work|null
      */
-    private function mapWork(array $doc): array
+    private function mapWork(array $doc): ?array
     {
+        if (! is_string($doc['key'] ?? null) || ! is_string($doc['title'] ?? null)) {
+            return null;
+        }
+
+        $openLibraryId = Str::after($doc['key'], '/works/');
+
+        if (mb_strlen($openLibraryId) > self::KEY_MAX_LENGTH) {
+            return null;
+        }
+
         $authorKeys = is_array($doc['author_key'] ?? null) ? array_values($doc['author_key']) : [];
         $authorNames = is_array($doc['author_name'] ?? null) ? array_values($doc['author_name']) : [];
         $authors = [];
@@ -172,14 +196,14 @@ class OpenLibrary
         foreach ($authorKeys as $index => $authorKey) {
             $name = $authorNames[$index] ?? null;
 
-            if (is_string($authorKey) && is_string($name)) {
-                $authors[] = ['openlibrary_id' => $authorKey, 'name' => $name];
+            if (is_string($authorKey) && is_string($name) && mb_strlen($authorKey) <= self::KEY_MAX_LENGTH) {
+                $authors[] = ['openlibrary_id' => $authorKey, 'name' => Str::limit($name, self::AUTHOR_NAME_MAX_LENGTH, '')];
             }
         }
 
         return [
-            'openlibrary_id' => Str::after($doc['key'], '/works/'),
-            'title' => $doc['title'],
+            'openlibrary_id' => $openLibraryId,
+            'title' => Str::limit($doc['title'], self::TITLE_MAX_LENGTH, ''),
             'authors' => $authors,
             'first_publish_year' => is_int($doc['first_publish_year'] ?? null) ? $doc['first_publish_year'] : null,
             'cover_id' => is_int($doc['cover_i'] ?? null) ? $doc['cover_i'] : null,

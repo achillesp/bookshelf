@@ -24,6 +24,6 @@ class DashboardRequest extends FormRequest
      */
     public function year(): int
     {
-        return $this->integer('year', now()->year);
+        return $this->filled('year') ? $this->integer('year') : now()->year;
     }
 }

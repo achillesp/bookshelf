@@ -40,6 +40,6 @@ class LibraryIndexRequest extends FormRequest
 
     public function sort(): string
     {
-        return $this->string('sort', 'updated')->toString();
+        return $this->filled('sort') ? $this->string('sort')->toString() : 'updated';
     }
 }

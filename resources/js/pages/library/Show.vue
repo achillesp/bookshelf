@@ -24,6 +24,12 @@ setLayoutProps({
 
 const savedMessage = ref('');
 
+/**
+ * Notes live in a draft outside the keyed Form, so typed but unsaved Notes
+ * survive a remount when a Reading Status change sets dates on the server.
+ */
+const notes = ref(props.entry.notes ?? '');
+
 const today = new Date().toLocaleDateString('en-CA');
 
 function save(
@@ -91,7 +97,7 @@ function save(
         </div>
 
         <Form
-            :key="entry.updated_at"
+            :key="`${entry.started_on}|${entry.finished_on}`"
             v-bind="update.form(entry.id)"
             :options="{ preserveScroll: true }"
             class="flex flex-col gap-6"
@@ -149,7 +155,7 @@ function save(
                     maxlength="10000"
                     class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive dark:bg-input/30"
                     placeholder="What did you think?"
-                    :defaultValue="entry.notes ?? ''"
+                    v-model="notes"
                     :aria-invalid="errors.notes ? true : undefined"
                     :aria-describedby="errors.notes ? 'notes-error' : undefined"
                 />

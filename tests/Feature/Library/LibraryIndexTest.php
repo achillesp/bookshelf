@@ -66,6 +66,15 @@ test('the Library sorts by recently updated by default', function () {
     );
 });
 
+test('the Library falls back to the default sort when sort is empty', function () {
+    $reader = User::factory()->create();
+
+    $response = $this->actingAs($reader)->get(route('library.index', ['sort' => '']));
+
+    $response->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('filters.sort', 'updated'));
+});
+
 test('the Library sorts by title', function () {
     $reader = User::factory()->create();
     $zebra = LibraryEntry::factory()->for($reader)->for(Book::factory()->state(['title' => 'Zebra']))->create();

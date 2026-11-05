@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('authors', function (Blueprint $table) {
             $table->id();
             $table->string('openlibrary_id')->unique();
-            $table->string('name');
+            $table->string('name', 512);
             $table->timestamps();
         });
     }
