@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ChevronLeft, ChevronRight, Search, Star } from '@lucide/vue';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import BookCover from '@/components/BookCover.vue';
 import LibraryEntryMenu from '@/components/LibraryEntryMenu.vue';
 import ReadingStatusBadge from '@/components/ReadingStatusBadge.vue';
@@ -104,6 +104,11 @@ function save(
         },
         onFinish: () => {
             saving.value = null;
+            nextTick(() => {
+                if (document.activeElement === document.body) {
+                    focusMenuOrHeading(entry.id);
+                }
+            });
         },
     });
 }
@@ -130,15 +135,21 @@ function authorNames(entry: LibraryEntry): string {
 }
 
 /**
+ * Focuses a Book's menu button, or the heading once the Book has left the list
+ * (removed, or hidden by the Status filter).
+ */
+function focusMenuOrHeading(entryId: number | null): void {
+    const trigger = document.getElementById(`entry-menu-${entryId}`);
+    (trigger ?? document.getElementById('library-heading'))?.focus();
+}
+
+/**
  * The remove dialog was opened from a menu item that no longer exists, so focus
  * goes back to that Book's menu button, or to the heading once it is removed.
  */
 function restoreFocus(event: Event): void {
     event.preventDefault();
-    const trigger = document.getElementById(
-        `entry-menu-${menuToRefocus.value}`,
-    );
-    (trigger ?? document.getElementById('library-heading'))?.focus();
+    focusMenuOrHeading(menuToRefocus.value);
 }
 
 function confirmRemove(entry: LibraryEntry): void {

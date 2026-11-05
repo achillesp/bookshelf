@@ -162,7 +162,7 @@ function addToLibrary(result: SearchResult): void {
                                     startingStatus[result.openlibrary_id] ??
                                     READING_STATUS.WANT_TO_READ
                                 "
-                                :label="`Starting status for ${result.title}`"
+                                :label="`Starting Reading Status for ${result.title}`"
                                 :disabled="adding !== null"
                                 @update:model-value="
                                     startingStatus[result.openlibrary_id] =

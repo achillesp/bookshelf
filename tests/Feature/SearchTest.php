@@ -100,9 +100,9 @@ test('search shows an unavailable message and caches nothing when OpenLibrary ca
         ->assertInertia(fn (Assert $page) => $page
             ->where('query', 'dune')
             ->where('results', [])
-            ->where('error', "We can't reach the book catalogue right now. Give it a minute and try again.")
+            ->where('error', "We can't reach the Book catalogue right now. Give it a minute and try again.")
             ->hasFlash('toast.type', 'error')
-            ->hasFlash('toast.message', "We can't reach the book catalogue right now. Give it a minute and try again."),
+            ->hasFlash('toast.message', "We can't reach the Book catalogue right now. Give it a minute and try again."),
         );
     Http::assertSentCount(2);
 });
@@ -116,7 +116,7 @@ test('search shows an unavailable message when OpenLibrary returns a server erro
 
     $response->assertInertia(fn (Assert $page) => $page
         ->where('results', [])
-        ->where('error', "We can't reach the book catalogue right now. Give it a minute and try again."),
+        ->where('error', "We can't reach the Book catalogue right now. Give it a minute and try again."),
     );
 });
 
@@ -192,9 +192,9 @@ test('a 4th uncached OpenLibrary call within one second is rejected as busy with
 
     $response->assertInertia(fn (Assert $page) => $page
         ->where('results', [])
-        ->where('error', 'The book catalogue is busy right now. Try again in a moment.')
+        ->where('error', 'The Book catalogue is busy right now. Try again in a moment.')
         ->hasFlash('toast.type', 'error')
-        ->hasFlash('toast.message', 'The book catalogue is busy right now. Try again in a moment.'),
+        ->hasFlash('toast.message', 'The Book catalogue is busy right now. Try again in a moment.'),
     );
     Http::assertSentCount(3);
     expect(RateLimiter::attempts('openlibrary:'.$reader->id))->toBe(0);

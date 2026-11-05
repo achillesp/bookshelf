@@ -6,13 +6,13 @@ import ReadingNook from '@/components/decor/ReadingNook.vue';
 import SampleCover from '@/components/decor/SampleCover.vue';
 import ReadingStatusBadge from '@/components/ReadingStatusBadge.vue';
 import { Button } from '@/components/ui/button';
-import { login, register } from '@/routes';
+import { home, login, register } from '@/routes';
 
 const steps = [
     {
         icon: Search,
         title: 'Find a Book',
-        text: 'Search millions of titles by name, Author or ISBN.',
+        text: 'Search millions of Books by title, Author or ISBN.',
     },
     {
         icon: LibraryBig,
@@ -69,7 +69,7 @@ const year = new Date().getFullYear();
             class="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-5"
         >
             <Link
-                href="/"
+                :href="home()"
                 class="flex min-w-0 items-center rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
                 <AppLogo />
@@ -191,8 +191,8 @@ const year = new Date().getFullYear();
                     class="grid gap-10 rounded-3xl border bg-card p-5 shadow-lg sm:p-8 lg:grid-cols-[1.6fr_1fr] lg:items-center"
                 >
                     <figcaption class="sr-only">
-                        A sample Library shelf with three made-up Books, and
-                        sample reading numbers.
+                        A sample Library with three made-up Books, and sample
+                        reading numbers.
                     </figcaption>
 
                     <div aria-hidden="true" class="flex flex-col gap-4">

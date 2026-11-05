@@ -120,7 +120,7 @@ test('adding a new Book while OpenLibrary is down shows an error and creates not
     $response = $this->actingAs($reader)->post(route('library.store'), ['openlibrary_id' => 'OL893414W']);
 
     $response->assertInertiaFlash('toast.type', 'error')
-        ->assertInertiaFlash('toast.message', "We can't reach the book catalogue right now. Give it a minute and try again.");
+        ->assertInertiaFlash('toast.message', "We can't reach the Book catalogue right now. Give it a minute and try again.");
     expect(Book::count())->toBe(0)
         ->and(Author::count())->toBe(0)
         ->and(LibraryEntry::count())->toBe(0);

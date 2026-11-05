@@ -16,6 +16,10 @@ import type { LibraryEntry, ReadingStatus } from '@/types';
 
 const props = defineProps<{
     entry: LibraryEntry;
+    /**
+     * Disables the menu's choices but not its button, so the menu can still
+     * hand focus back to the button when it closes during a save.
+     */
     disabled?: boolean;
 }>();
 
@@ -61,7 +65,6 @@ function chooseRating(value: unknown): void {
                 variant="secondary"
                 size="icon"
                 class="size-9 rounded-full shadow-md"
-                :disabled="disabled"
                 :aria-label="`Change “${entry.book.title}”`"
             >
                 <EllipsisVertical />
@@ -77,6 +80,7 @@ function chooseRating(value: unknown): void {
                     v-for="status in statuses"
                     :key="status.value"
                     :value="status.value"
+                    :disabled="disabled"
                     class="min-h-9"
                 >
                     {{ status.text }}
@@ -92,13 +96,18 @@ function chooseRating(value: unknown): void {
                 "
                 @update:model-value="chooseRating"
             >
-                <DropdownMenuRadioItem :value="NO_RATING" class="min-h-9">
+                <DropdownMenuRadioItem
+                    :value="NO_RATING"
+                    :disabled="disabled"
+                    class="min-h-9"
+                >
                     No Rating
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem
                     v-for="rating in ratings"
                     :key="rating"
                     :value="String(rating)"
+                    :disabled="disabled"
                     class="min-h-9"
                 >
                     <span class="sr-only">
@@ -118,6 +127,7 @@ function chooseRating(value: unknown): void {
 
             <DropdownMenuItem
                 variant="destructive"
+                :disabled="disabled"
                 class="min-h-9"
                 @select="emit('remove')"
             >
