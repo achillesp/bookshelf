@@ -32,7 +32,7 @@ Brainstorm: `docs/brainstorms/2026-11-05-cozy-redesign-brainstorm.md` (WHY/WHAT)
 - `user` (plan confirmation, 2026-11-05): fonts "Fraunces + Nunito"; quick menu as "Menu with choices"; promote "Font preloading" and "Delete unused starter files".
 - `inferred`: draft palette light cream `#FBF5EA`/brown `#3B2A20`/terracotta `#A8482A`/sage `#DDE6D3`/mustard `#E9B949`, dark plum `#1E1A2E`/cream `#F3E6D3`/amber `#F2B45A`. Proposals, approved in Task 1's review.
 - `inferred`: Select-in-Popover nests two portals and needs extra focus handling (not probed; Option C is ruled out on concept count alone).
-- `inferred`: greeting uses the browser's local time (no Reader timezone is stored).
+- `observed`: SSR is on (`config/inertia.php:19`), so a time-of-day greeting must be set after mount to use the browser's local time (no Reader timezone is stored).
 - `inferred`: after `DashboardRequest` is removed, `/dashboard?year=2020` is a plain 200 (Laravel ignores unvalidated query params); Task 4's test asserts it.
 
 **Readings.** "New theme on every page": minimal = tokens + fonts reach every page; maximal = bespoke layout everywhere. The brainstorm picks minimal-plus-five-bespoke pages. "WCAG 2.2 AA": minimal = token contrast; maximal = full audit. Same design either way; Verification does token ratios + Lighthouse a11y + keyboard pass per page. "Reduced motion": every animation, including Reka's tw-animate classes, so a global rule rather than per-class variants.
@@ -57,14 +57,15 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - **Fonts**: `vite.config.ts:14-18` swaps Instrument Sans for `bunny('Nunito')` + `bunny('Fraunces')`, using the `preload` option for the above-the-fold weights only.
 - **Cleanup**: delete unused `components/ui/sidebar`, `layouts/auth/AuthCardLayout.vue`, `layouts/auth/AuthSimpleLayout.vue` once nothing imports them.
 - **Identity**: new `AppLogoIcon.vue` (book + steam curl, `currentColor`); `AppLogo.vue` serif wordmark from `page.props.name`; replace `public/favicon.svg`, `favicon.ico`, `apple-touch-icon.png`.
-- **Stats**: `ReadingStats` takes `statusCounts`, `completedByYear`, `topAuthors` from `DashboardController.php:43-112`. `GET /stats` → `StatsController` → `stats/Index.vue`. `DashboardRequest` → `StatsRequest`; year tests move to `tests/Feature/StatsTest.php`.
-- **Nav**: `layouts/app/AppTopBarLayout.vue` (from `AppHeaderLayout`, keeps Toaster); `AppHeader.vue` with 4 items and the avatar menu (starter links and dead search removed); `components/BottomTabBar.vue` (`md:hidden`, ≥44px, `aria-current`). `AppLayout.vue` points to it. Remove page breadcrumbs, `AppSidebar*`, `NavMain`, `NavFooter`, `Breadcrumbs`, `sidebarOpen` (`HandleInertiaRequests.php:44`, `types/global.d.ts:22`), `sidebar_state` (`bootstrap/app.php:18`).
-- **Dashboard**: greeting, Reading covers (`L`), tile grid, compact chart, "See all your stats →".
+- **Stats**: `ReadingStats` takes `statusCounts`, `completedByYear`, `topAuthors` from `DashboardController.php:43-112`. `GET /stats` → `StatsController` → `stats/Index.vue`. Task 2 adds `StatsRequest` beside `DashboardRequest` and leaves the Dashboard year selector working; Task 4 deletes `DashboardRequest` and the Dashboard year props and moves the remaining year tests to `tests/Feature/StatsTest.php`. `/stats` joins the `auth`+`verified` group (`routes/web.php:10`); `ReadingStats` only receives `$request->user()`. `StatsTest.php` covers guest and unverified redirects.
+- **Nav**: rename the unused `layouts/app/AppHeaderLayout.vue` to `AppTopBarLayout.vue` (keeps Toaster, gains `BottomTabBar`, drops the breadcrumbs prop); `AppHeader.vue` with 4 items and the avatar menu (starter links and dead search removed); `components/BottomTabBar.vue` (`md:hidden`, ≥44px, `aria-current`). `AppLayout.vue` points to it. Remove page breadcrumbs, `AppSidebar*`, `NavMain`, `NavFooter`, `Breadcrumbs`, `sidebarOpen` (`HandleInertiaRequests.php:44`, `types/global.d.ts:22`), `sidebar_state` (`bootstrap/app.php:18`).
+- **Nav shell**: `AppShell.vue` and `AppContent.vue` keep only the header shape (drop the `variant` prop, the `AppVariant` type in `types/ui.ts` and the `sidebarOpen` read); delete `NavUser.vue`. `components/ui/sidebar` goes only once `grep -rl sidebar resources/js` finds no import outside it.
+- **Dashboard**: greeting (neutral on the server render, time of day set after mount, since SSR is on per `config/inertia.php:19`), Reading covers (`L`), tile grid, compact chart, "See all your stats →".
 - **Library**: `library/Index.vue` cover grid (`L`) on wood-plank rows; quick menu items call the existing `save()` (`router.patch`, no keyed Form); filters, pagination, remove dialog kept.
 - **Search / Show**: restyle; `Show.vue` Notes behaviour untouched.
 - **Homepage**: `routes/web.php:8` adds `->middleware('guest')`; `Welcome.vue` rebuilt with Hero (SVG nook placeholder), How it works, Peek inside (static mock, no numbers claimed as real), CTA, footer.
 - **Auth**: `AuthLayout.vue` → `AuthSplitLayout` with decor illustration.
-- **Copy**: each slice rewrites its own empty states; Library flashes in `LibraryEntryController.php:59-106`.
+- **Copy**: each slice rewrites its own empty states; Library flashes in `LibraryEntryController.php:59-106` and the search errors in `app/Services/OpenLibraryException.php:13-25` (Task 5), updating the literal assertions in `SearchTest.php` and `Library/StoreLibraryEntryTest.php`.
 
 ## Acceptance Criteria
 
@@ -83,7 +84,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
   - AC: all pages render the approved palette and Fraunces/Nunito in both modes; html background matches on first paint; contrast script passes AA for every pair; no animation under reduced motion; `<link rel="preload">` only for above-the-fold weights; new logo in app and auth screens and new favicon in the tab; no Laravel mark in `resources/js` or `public/`
   - Blocked by: none
 - [ ] **Stats page backed by ReadingStats** (AFK)
-  - AC: queries live in `ReadingStats` and `DashboardTest.php` still passes before the page is added; `/stats` shows status counts, month chart with year select, top Authors; `StatsTest.php` covers year, years, empty `?year=`, rejected years, top Authors, guest redirect; reachable from current nav
+  - AC: queries live in `ReadingStats` and `DashboardTest.php` still passes before the page is added; `/stats` shows status counts, month chart with year select, top Authors; `StatsTest.php` covers year, years, empty `?year=`, rejected years, top Authors, guest and unverified redirects; the nav link arrives with Task 3
   - Blocked by: Task 1
 - [ ] **Top bar and mobile bottom tabs replace the sidebar** (AFK)
   - AC: Dashboard · Search · Library · Stats with active state at 1280px and 375px; avatar menu reaches Settings and Log out; no sidebar renders and `components/ui/sidebar` is gone; toasts still show
