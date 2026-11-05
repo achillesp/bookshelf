@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Book;
+use App\Models\LibraryEntry;
 use App\Models\User;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -10,9 +12,7 @@ function fakeOpenLibrarySearch(): void
 {
     Http::preventStrayRequests();
     Http::fake([
-        'openlibrary.org/search.json*' => Http::response(
-            json_decode(file_get_contents(base_path('tests/Fixtures/openlibrary/search-dune.json')), true),
-        ),
+        'openlibrary.org/search.json*' => openLibraryResponse('search-dune'),
     ]);
 }
 
@@ -161,4 +161,17 @@ test('search rejects a query longer than 200 characters', function () {
 
     $response->assertSessionHasErrors(['q' => 'The search field must not be greater than 200 characters.']);
     Http::assertNothingSent();
+});
+
+test('search marks results already in the Reader Library', function () {
+    fakeOpenLibrarySearch();
+    $reader = User::factory()->create();
+    $dune = Book::factory()->create(['openlibrary_id' => 'OL893414W']);
+    $duneNotes = Book::factory()->create(['openlibrary_id' => 'OL27448W']);
+    LibraryEntry::factory()->for($reader)->for($dune)->create();
+    LibraryEntry::factory()->for($duneNotes)->create();
+
+    $response = $this->actingAs($reader)->get(route('search', ['q' => 'dune']));
+
+    $response->assertInertia(fn (Assert $page) => $page->where('inLibrary', ['OL893414W']));
 });

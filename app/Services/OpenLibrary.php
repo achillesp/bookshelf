@@ -67,6 +67,33 @@ class OpenLibrary
     }
 
     /**
+     * Find one work by its key (e.g. "OL893414W"), from the cache when a recent search returned it.
+     *
+     * @return Work|null
+     *
+     * @throws OpenLibraryException
+     */
+    public function findWork(string $openLibraryId, User $reader): ?array
+    {
+        $cacheKey = $this->workCacheKey($openLibraryId);
+        $cached = Cache::get($cacheKey);
+
+        if (is_array($cached)) {
+            /** @var Work $cached */
+            return $cached;
+        }
+
+        $work = collect($this->fetch('key:/works/'.$openLibraryId, 1, $reader))
+            ->firstWhere('openlibrary_id', $openLibraryId);
+
+        if ($work !== null) {
+            Cache::put($cacheKey, $work, self::CACHE_TTL_SECONDS);
+        }
+
+        return $work;
+    }
+
+    /**
      * Cache key holding one mapped work.
      */
     private function workCacheKey(string $openLibraryId): string

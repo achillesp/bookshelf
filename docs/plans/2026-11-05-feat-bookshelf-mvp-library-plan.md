@@ -79,7 +79,7 @@ erDiagram
 - [x] **Search OpenLibrary from a Search page** (AFK)
   - AC: `/search?q=dune` shows Dune with cover, Authors, year, ~608 pages; repeat search makes no HTTP call and is not rate-limited; connection failure shows "search unavailable"; 21st uncached OpenLibrary call in a minute shows a rate-limit toast; Search in sidebar
   - Blocked by: none
-- [ ] **Add a search result to the Library** (AFK)
+- [x] **Add a search result to the Library** (AFK)
   - AC: Add defaults to Want to Read; creates Book, Authors, entry with auto-filled dates; adding right after a search makes no HTTP call (per-work cache); existing Book makes no HTTP call; uncached new Book counts toward the rate limit; result then shows "In your Library"; duplicate rejected; OpenLibrary down on a new Book → error toast, no rows
   - Blocked by: Task 1
 - [ ] **Library page: browse, quick edit, remove** (AFK)

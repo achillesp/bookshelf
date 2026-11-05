@@ -1,0 +1,16 @@
+{
+    "numFound": 1,
+    "start": 0,
+    "q": "key:/works/OL893414W",
+    "docs": [
+        {
+            "author_key": ["OL79034A"],
+            "author_name": ["Frank Herbert"],
+            "cover_i": 11481354,
+            "first_publish_year": 1965,
+            "key": "/works/OL893414W",
+            "number_of_pages_median": 608,
+            "title": "Dune"
+        }
+    ]
+}

@@ -1,6 +1,8 @@
 <?php
 
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /*
@@ -44,7 +46,10 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Fake OpenLibrary response built from a JSON fixture in tests/Fixtures/openlibrary.
+ */
+function openLibraryResponse(string $fixture): PromiseInterface
 {
-    // ..
+    return Http::response(json_decode(file_get_contents(base_path("tests/Fixtures/openlibrary/{$fixture}.json")), true));
 }
