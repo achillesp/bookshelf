@@ -197,13 +197,13 @@ class OpenLibrary
             $name = $authorNames[$index] ?? null;
 
             if (is_string($authorKey) && is_string($name) && mb_strlen($authorKey) <= self::KEY_MAX_LENGTH) {
-                $authors[] = ['openlibrary_id' => $authorKey, 'name' => Str::limit($name, self::AUTHOR_NAME_MAX_LENGTH, '')];
+                $authors[] = ['openlibrary_id' => $authorKey, 'name' => Str::substr($name, 0, self::AUTHOR_NAME_MAX_LENGTH)];
             }
         }
 
         return [
             'openlibrary_id' => $openLibraryId,
-            'title' => Str::limit($doc['title'], self::TITLE_MAX_LENGTH, ''),
+            'title' => Str::substr($doc['title'], 0, self::TITLE_MAX_LENGTH),
             'authors' => $authors,
             'first_publish_year' => is_int($doc['first_publish_year'] ?? null) ? $doc['first_publish_year'] : null,
             'cover_id' => is_int($doc['cover_i'] ?? null) ? $doc['cover_i'] : null,

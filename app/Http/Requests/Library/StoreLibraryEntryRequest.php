@@ -17,7 +17,7 @@ class StoreLibraryEntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'openlibrary_id' => ['required', 'string', 'regex:/^OL\d+W$/'],
+            'openlibrary_id' => ['required', 'string', 'max:255', 'regex:/^OL\d+W$/'],
             'status' => ['nullable', Rule::enum(ReadingStatus::class)],
         ];
     }

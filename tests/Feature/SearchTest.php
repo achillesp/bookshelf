@@ -214,3 +214,13 @@ test('OpenLibrary calls are allowed again once the busy second has passed', func
     $response->assertInertia(fn (Assert $page) => $page->has('results', 2)->where('error', null));
     Http::assertSentCount(4);
 });
+
+test('search skips a result whose work key is longer than its column', function () {
+    Http::preventStrayRequests();
+    Http::fake(['openlibrary.org/search.json*' => openLibraryResponse('work-long-key')]);
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get(route('search', ['q' => 'long key']));
+
+    $response->assertInertia(fn (Assert $page) => $page->where('results', [])->where('error', null));
+});

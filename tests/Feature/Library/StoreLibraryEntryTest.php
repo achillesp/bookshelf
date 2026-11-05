@@ -167,17 +167,25 @@ test('adding a work with an over-long title and Author name stores them cut to t
         ->and(LibraryEntry::count())->toBe(1);
 });
 
-test('adding a work whose key is longer than its column is rejected', function () {
+test('adding a work stores a full-width title by character count', function (int $length, int $storedLength) {
     Http::preventStrayRequests();
-    Http::fake(['openlibrary.org/search.json*' => openLibraryResponse('work-long-key')]);
+    Http::fake(['openlibrary.org/search.json*' => Http::response(['docs' => [[
+        'key' => '/works/OL45804W',
+        'title' => str_repeat('本', $length),
+        'author_key' => ['OL4327048A'],
+        'author_name' => [str_repeat('著', $length)],
+    ]]])]);
     $reader = User::factory()->create();
 
-    $response = $this->actingAs($reader)->post(route('library.store'), ['openlibrary_id' => 'OL'.str_repeat('1', 300).'W']);
+    $this->actingAs($reader)->post(route('library.store'), ['openlibrary_id' => 'OL45804W']);
 
-    $response->assertSessionHasErrors(['openlibrary_id' => 'This book could not be found on OpenLibrary.']);
-    expect(Book::count())->toBe(0)
-        ->and(LibraryEntry::count())->toBe(0);
-});
+    $book = Book::sole();
+    expect(mb_strlen($book->title))->toBe($storedLength)
+        ->and(mb_strlen($book->authors->sole()->name))->toBe(min($length, 512));
+})->with([
+    'fits the column' => [1000, 1000],
+    'longer than the column' => [1100, 1024],
+]);
 
 test('adding validates the work key and status', function (array $payload, string $field, string $message) {
     Http::preventStrayRequests();
@@ -190,5 +198,6 @@ test('adding validates the work key and status', function (array $payload, strin
 })->with([
     'missing work key' => [[], 'openlibrary_id', 'The book field is required.'],
     'edition key instead of a work key' => [['openlibrary_id' => 'OL123M'], 'openlibrary_id', 'The book field format is invalid.'],
+    'work key longer than its column' => [['openlibrary_id' => 'OL'.str_repeat('1', 300).'W'], 'openlibrary_id', 'The book field must not be greater than 255 characters.'],
     'unknown status' => [['openlibrary_id' => 'OL893414W', 'status' => 'abandoned'], 'status', 'The selected status is invalid.'],
 ]);
