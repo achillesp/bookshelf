@@ -54,7 +54,7 @@ const sortOptions: { value: LibrarySort; text: string }[] = [
 const saving = ref<number | null>(null);
 const entryToRemove = ref<LibraryEntry | null>(null);
 const removing = ref(false);
-const menuToRefocus = ref<{ id: number; position: number } | null>(null);
+const positionToRefocus = ref<number | null>(null);
 
 function visitWith(filters: {
     status: ReadingStatus | null;
@@ -108,7 +108,7 @@ function save(
             saving.value = null;
             nextTick(() => {
                 if (document.activeElement === document.body) {
-                    focusMenuOrNeighbour(entry.id, position);
+                    focusMenuOrNeighbour(position);
                 }
             });
         },
@@ -141,20 +141,19 @@ function positionOf(entry: LibraryEntry): number {
 }
 
 /**
- * Focuses a Book's menu button. Once the Book has left the shelf (removed,
- * hidden by the Status filter, or moved to another page), focus goes to the
- * Book now in its place, so the Reader stays where they were; the heading is
- * the fallback only for an empty shelf.
+ * Keeps the Reader's place on the shelf: focus goes to the menu button of the
+ * Book at the position the changed Book had. That is the same Book when it
+ * stayed put, and the one now in its place when it moved (the default sort puts
+ * it first), left the filter or page, or was removed. The heading is the
+ * fallback only for an empty shelf.
  */
-function focusMenuOrNeighbour(entryId: number, position: number): void {
+function focusMenuOrNeighbour(position: number): void {
     const entries = props.entries.data;
-    const neighbour = entries[Math.min(position, entries.length - 1)];
+    const inPlace = entries[Math.min(position, entries.length - 1)];
     const target =
-        document.getElementById(`entry-menu-${entryId}`) ??
-        (neighbour
-            ? document.getElementById(`entry-menu-${neighbour.id}`)
-            : null) ??
-        document.getElementById('library-heading');
+        (inPlace
+            ? document.getElementById(`entry-menu-${inPlace.id}`)
+            : null) ?? document.getElementById('library-heading');
 
     target?.focus();
 }
@@ -166,16 +165,13 @@ function focusMenuOrNeighbour(entryId: number, position: number): void {
 function restoreFocus(event: Event): void {
     event.preventDefault();
 
-    if (menuToRefocus.value !== null) {
-        focusMenuOrNeighbour(
-            menuToRefocus.value.id,
-            menuToRefocus.value.position,
-        );
+    if (positionToRefocus.value !== null) {
+        focusMenuOrNeighbour(positionToRefocus.value);
     }
 }
 
 function confirmRemove(entry: LibraryEntry): void {
-    menuToRefocus.value = { id: entry.id, position: positionOf(entry) };
+    positionToRefocus.value = positionOf(entry);
     entryToRemove.value = entry;
 }
 
