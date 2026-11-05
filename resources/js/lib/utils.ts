@@ -12,15 +12,24 @@ export function toUrl(href: NonNullable<InertiaLinkProps['href']>) {
 }
 
 /**
- * Focuses an element without the browser's instant jump, then scrolls just
- * enough to show `reveal`: smoothly, or at once when the Reader prefers
- * reduced motion.
+ * Focuses an element without the browser's instant jump. Only when the element
+ * is off-screen (inside `reveal`'s scroll margins, which leave room for sticky
+ * bars) does the page scroll just enough to show `reveal`: smoothly, or at once
+ * when the Reader prefers reduced motion.
  */
-export function focusAndReveal(
-    element: HTMLElement,
-    reveal: Element = element,
-): void {
+export function focusAndReveal(element: HTMLElement, reveal: Element): void {
     element.focus({ preventScroll: true });
+
+    const margins = getComputedStyle(reveal);
+    const { top, bottom } = element.getBoundingClientRect();
+    const isVisible =
+        top >= parseFloat(margins.scrollMarginTop) &&
+        bottom <= window.innerHeight - parseFloat(margins.scrollMarginBottom);
+
+    if (isVisible) {
+        return;
+    }
+
     reveal.scrollIntoView({
         behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
             ? 'auto'
