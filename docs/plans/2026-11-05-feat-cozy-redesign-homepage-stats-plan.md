@@ -83,7 +83,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - [x] **Visual identity: theme, fonts, logo and favicon** (HITL: palette, font and logo review)
   - AC: all pages render the approved palette and Fraunces/Nunito in both modes; html background matches on first paint; contrast script passes AA for every pair; no animation under reduced motion; `<link rel="preload">` only for above-the-fold weights; new logo in app and auth screens and new favicon in the tab; no Laravel mark in `resources/js` or `public/`
   - Blocked by: none
-- [ ] **Stats page backed by ReadingStats** (AFK)
+- [x] **Stats page backed by ReadingStats** (AFK)
   - AC: queries live in `ReadingStats` and `DashboardTest.php` still passes before the page is added; `/stats` shows status counts, month chart with year select, top Authors; `StatsTest.php` covers year, years, empty `?year=`, rejected years, top Authors, guest and unverified redirects; the nav link arrives with Task 3
   - Blocked by: Task 1
 - [ ] **Top bar and mobile bottom tabs replace the sidebar** (AFK)
@@ -126,6 +126,8 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - Task 1 (HITL, 2026-11-05): the user approved the draft palette, Fraunces + Nunito and the open-book-with-steam logo as proposed, and chose the shelf wood from a set of variations: birch `#DDBF8A` / edge `#B8935B` in light, mahogany `#723124` / edge `#4A1D15` in dark (tokens `--wood`, `--wood-edge`).
 - Task 1: `AppLogoIcon.vue` already existed (the starter's Laravel mark) and was rewritten, not created. The stock `Welcome.vue` still carries the Laravel mark until Task 6 replaces the page.
 - Task 1: Inertia's progress bar uses `var(--primary)` instead of a fixed hex, so it follows the mode.
+- Task 2 (Premise Break, patched with the user): email verification is off (`User` does not implement `MustVerifyEmail`, no `verification.notice` route), so `verified` lets every signed-in Reader through and an "unverified redirect" test cannot exist. `/stats` stays in the `auth`+`verified` group like the Dashboard; `StatsTest.php` covers the guest redirect only.
+- Task 2: the Dashboard's inline bar chart was swapped for `MonthlyBarChart` in this task rather than Task 4, so only one copy of the chart exists.
 
 ## Risks & Dependencies
 

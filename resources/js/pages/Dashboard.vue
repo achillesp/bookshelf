@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Search } from '@lucide/vue';
 import { computed } from 'vue';
 import BookCover from '@/components/BookCover.vue';
+import MonthlyBarChart from '@/components/MonthlyBarChart.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -37,21 +38,6 @@ const props = defineProps<{
     topAuthors: { id: number; name: string; completed_books: number }[];
 }>();
 
-const MONTHS = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-];
-
 const statuses = Object.values(READING_STATUS).map((status) => ({
     label: READING_STATUS_LABELS[status],
     count: props.statusCounts[status],
@@ -61,8 +47,6 @@ const statuses = Object.values(READING_STATUS).map((status) => ({
 const completedInYear = computed(() =>
     props.completedPerMonth.reduce((total, count) => total + count, 0),
 );
-
-const chartMax = computed(() => Math.max(1, ...props.completedPerMonth));
 
 function showYear(value: unknown): void {
     router.get(
@@ -186,63 +170,7 @@ function showYear(value: unknown): void {
                     </div>
                 </div>
 
-                <div
-                    aria-hidden="true"
-                    class="flex h-48 items-end gap-1 border-b"
-                >
-                    <div
-                        v-for="(count, month) in completedPerMonth"
-                        :key="month"
-                        class="group relative flex h-full flex-1 flex-col justify-end"
-                    >
-                        <span
-                            class="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 -translate-y-full rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap text-popover-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
-                        >
-                            {{ MONTHS[month] }}: {{ count }}
-                        </span>
-                        <div
-                            class="mx-auto w-full max-w-8 rounded-t-[4px] bg-primary"
-                            :style="{
-                                height: `${(count / chartMax) * 100}%`,
-                            }"
-                        />
-                    </div>
-                </div>
-                <div aria-hidden="true" class="-mt-2 flex gap-1">
-                    <span
-                        v-for="month in MONTHS"
-                        :key="month"
-                        class="flex-1 text-center text-xs text-muted-foreground"
-                    >
-                        {{ month }}
-                    </span>
-                </div>
-
-                <div class="sr-only">
-                    <table>
-                        <caption>
-                            Completed Books per month in
-                            {{
-                                year
-                            }}
-                        </caption>
-                        <thead>
-                            <tr>
-                                <th scope="col">Month</th>
-                                <th scope="col">Completed Books</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                v-for="(count, month) in completedPerMonth"
-                                :key="month"
-                            >
-                                <th scope="row">{{ MONTHS[month] }}</th>
-                                <td>{{ count }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <MonthlyBarChart :counts="completedPerMonth" :year="year" />
             </section>
 
             <section
