@@ -76,7 +76,7 @@ erDiagram
 
 ## Task Breakdown
 
-- [ ] **Search OpenLibrary from a Search page** (AFK)
+- [x] **Search OpenLibrary from a Search page** (AFK)
   - AC: `/search?q=dune` shows Dune with cover, Authors, year, ~608 pages; repeat search makes no HTTP call and is not rate-limited; connection failure shows "search unavailable"; 21st uncached OpenLibrary call in a minute shows a rate-limit toast; Search in sidebar
   - Blocked by: none
 - [ ] **Add a search result to the Library** (AFK)

@@ -14,6 +14,10 @@ return [
     |
     */
 
+    'openlibrary' => [
+        'contact' => env('OPENLIBRARY_CONTACT'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],
