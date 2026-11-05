@@ -23,6 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { focusAndReveal } from '@/lib/utils';
 import { search } from '@/routes';
 import { destroy, index, show, update } from '@/routes/library';
 import { READING_STATUS_LABELS } from '@/types';
@@ -119,7 +120,7 @@ function save(
             saving.value = null;
             nextTick(() => {
                 if (document.activeElement === document.body) {
-                    focusMenuOrNeighbour(position);
+                    focusChangedBook(entry.id, position);
                 }
             });
         },
@@ -148,9 +149,8 @@ function authorNames(entry: LibraryEntry): string {
 }
 
 /**
- * What a screen reader hears after a save. Focus stays at the Book's old
- * position, which may now hold another Book, so the message says where the
- * changed Book went.
+ * What a screen reader hears after a save: whether the changed Book moved, and
+ * where to, since the sort can carry it to another place on the shelf.
  */
 function savedMessage(title: string, before: number, after: number): string {
     if (after === -1) {
@@ -171,11 +171,27 @@ function positionOf(entry: LibraryEntry): number {
 }
 
 /**
- * Keeps the Reader's place on the shelf: focus goes to the menu button of the
- * Book at the position the changed Book had. That is the same Book when it
- * stayed put, and the one now in its place when it moved (the default sort puts
- * it first), left the filter or page, or was removed. The heading is the
- * fallback only for an empty shelf.
+ * Focus stays on the changed Book: when the sort moved it (the default sort
+ * puts it first), the shelf scrolls to its new place, smoothly unless the
+ * Reader prefers reduced motion. A Book that left the page or the filter
+ * hands focus to the Book now in its old place.
+ */
+function focusChangedBook(entryId: number, position: number): void {
+    const trigger = document.getElementById(`entry-menu-${entryId}`);
+
+    if (trigger === null) {
+        focusMenuOrNeighbour(position);
+
+        return;
+    }
+
+    focusAndReveal(trigger, trigger.closest('li') ?? trigger);
+}
+
+/**
+ * Focuses the menu button of the Book now at the given position (the removed
+ * or departed Book's old place), so the Reader keeps their place. The heading
+ * is the fallback only for an empty shelf.
  */
 function focusMenuOrNeighbour(position: number): void {
     const entries = props.entries.data;
@@ -312,7 +328,7 @@ function formatDate(date: string): string {
             <li
                 v-for="entry in entries.data"
                 :key="entry.id"
-                class="group/book flex flex-col"
+                class="group/book flex scroll-mt-24 scroll-mb-20 flex-col"
             >
                 <div class="relative px-3 pt-4 sm:px-5">
                     <Link

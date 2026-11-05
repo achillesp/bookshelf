@@ -11,6 +11,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { focusAndReveal } from '@/lib/utils';
 import { READING_STATUS_LABELS } from '@/types';
 import type { LibraryEntry, ReadingStatus } from '@/types';
 
@@ -49,6 +50,20 @@ function chooseStatus(value: unknown): void {
     }
 }
 
+/**
+ * When the menu closes, focus goes back to its button. A save may already have
+ * moved this Book (the default sort puts it first), so the shelf scrolls to it
+ * instead of jumping there.
+ */
+function returnFocus(event: Event): void {
+    const trigger = document.getElementById(`entry-menu-${props.entry.id}`);
+
+    if (trigger !== null) {
+        event.preventDefault();
+        focusAndReveal(trigger, trigger.closest('li') ?? trigger);
+    }
+}
+
 function chooseRating(value: unknown): void {
     const rating = value === NO_RATING ? null : Number(value);
 
@@ -73,7 +88,11 @@ function chooseRating(value: unknown): void {
                 <EllipsisVertical />
             </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="w-56">
+        <DropdownMenuContent
+            align="end"
+            class="w-56"
+            @close-auto-focus="returnFocus"
+        >
             <DropdownMenuLabel>Reading Status</DropdownMenuLabel>
             <DropdownMenuRadioGroup
                 :model-value="entry.status"
