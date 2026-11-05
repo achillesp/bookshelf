@@ -55,6 +55,7 @@ const saving = ref<number | null>(null);
 const entryToRemove = ref<LibraryEntry | null>(null);
 const removing = ref(false);
 const positionToRefocus = ref<number | null>(null);
+const announcement = ref('');
 
 function visitWith(filters: {
     status: ReadingStatus | null;
@@ -103,6 +104,16 @@ function save(
         preserveScroll: true,
         onStart: () => {
             saving.value = entry.id;
+            announcement.value = '';
+        },
+        onSuccess: () => {
+            nextTick(() => {
+                announcement.value = savedMessage(
+                    entry.book.title,
+                    position,
+                    positionOf(entry),
+                );
+            });
         },
         onFinish: () => {
             saving.value = null;
@@ -134,6 +145,25 @@ function remove(): void {
 
 function authorNames(entry: LibraryEntry): string {
     return entry.book.authors.map((author) => author.name).join(', ');
+}
+
+/**
+ * What a screen reader hears after a save. Focus stays at the Book's old
+ * position, which may now hold another Book, so the message says where the
+ * changed Book went.
+ */
+function savedMessage(title: string, before: number, after: number): string {
+    if (after === -1) {
+        return `“${title}” saved. It's no longer on this page.`;
+    }
+
+    if (after === before) {
+        return `“${title}” saved.`;
+    }
+
+    return after === 0
+        ? `“${title}” saved and moved to the front of your Library.`
+        : `“${title}” saved and moved to place ${after + 1} on this page.`;
 }
 
 function positionOf(entry: LibraryEntry): number {
@@ -197,6 +227,7 @@ function formatDate(date: string): string {
                 >
                     Your Library
                 </h1>
+                <p class="sr-only" aria-live="polite">{{ announcement }}</p>
                 <p
                     v-if="entries.total > 0"
                     class="text-muted-foreground"
