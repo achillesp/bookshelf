@@ -23,6 +23,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['user_id', 'book_id']);
+            $table->index(['user_id', 'status']);
+            $table->index(['user_id', 'finished_on']);
         });
     }
 
