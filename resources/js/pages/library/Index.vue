@@ -54,7 +54,7 @@ const sortOptions: { value: LibrarySort; text: string }[] = [
 const saving = ref<number | null>(null);
 const entryToRemove = ref<LibraryEntry | null>(null);
 const removing = ref(false);
-const menuToRefocus = ref<number | null>(null);
+const menuToRefocus = ref<{ id: number; position: number } | null>(null);
 
 function visitWith(filters: {
     status: ReadingStatus | null;
@@ -97,6 +97,8 @@ function save(
     entry: LibraryEntry,
     data: { status: ReadingStatus } | { rating: number | null },
 ): void {
+    const position = positionOf(entry);
+
     router.patch(update.url(entry.id), data, {
         preserveScroll: true,
         onStart: () => {
@@ -106,7 +108,7 @@ function save(
             saving.value = null;
             nextTick(() => {
                 if (document.activeElement === document.body) {
-                    focusMenuOrHeading(entry.id);
+                    focusMenuOrNeighbour(entry.id, position);
                 }
             });
         },
@@ -134,26 +136,46 @@ function authorNames(entry: LibraryEntry): string {
     return entry.book.authors.map((author) => author.name).join(', ');
 }
 
+function positionOf(entry: LibraryEntry): number {
+    return props.entries.data.findIndex((item) => item.id === entry.id);
+}
+
 /**
- * Focuses a Book's menu button, or the heading once the Book has left the list
- * (removed, or hidden by the Status filter).
+ * Focuses a Book's menu button. Once the Book has left the shelf (removed,
+ * hidden by the Status filter, or moved to another page), focus goes to the
+ * Book now in its place, so the Reader stays where they were; the heading is
+ * the fallback only for an empty shelf.
  */
-function focusMenuOrHeading(entryId: number | null): void {
-    const trigger = document.getElementById(`entry-menu-${entryId}`);
-    (trigger ?? document.getElementById('library-heading'))?.focus();
+function focusMenuOrNeighbour(entryId: number, position: number): void {
+    const entries = props.entries.data;
+    const neighbour = entries[Math.min(position, entries.length - 1)];
+    const target =
+        document.getElementById(`entry-menu-${entryId}`) ??
+        (neighbour
+            ? document.getElementById(`entry-menu-${neighbour.id}`)
+            : null) ??
+        document.getElementById('library-heading');
+
+    target?.focus();
 }
 
 /**
  * The remove dialog was opened from a menu item that no longer exists, so focus
- * goes back to that Book's menu button, or to the heading once it is removed.
+ * goes back to that Book's menu button, or to the Book now in its place.
  */
 function restoreFocus(event: Event): void {
     event.preventDefault();
-    focusMenuOrHeading(menuToRefocus.value);
+
+    if (menuToRefocus.value !== null) {
+        focusMenuOrNeighbour(
+            menuToRefocus.value.id,
+            menuToRefocus.value.position,
+        );
+    }
 }
 
 function confirmRemove(entry: LibraryEntry): void {
-    menuToRefocus.value = entry.id;
+    menuToRefocus.value = { id: entry.id, position: positionOf(entry) };
     entryToRemove.value = entry;
 }
 
@@ -282,7 +304,7 @@ function formatDate(date: string): string {
                     <div class="absolute top-2 right-1 sm:right-3">
                         <LibraryEntryMenu
                             :entry="entry"
-                            :disabled="saving === entry.id"
+                            :saving="saving === entry.id"
                             @status="save(entry, { status: $event })"
                             @rating="save(entry, { rating: $event })"
                             @remove="confirmRemove(entry)"

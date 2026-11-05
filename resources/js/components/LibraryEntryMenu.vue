@@ -17,10 +17,11 @@ import type { LibraryEntry, ReadingStatus } from '@/types';
 const props = defineProps<{
     entry: LibraryEntry;
     /**
-     * Disables the menu's choices but not its button, so the menu can still
-     * hand focus back to the button when it closes during a save.
+     * A change to this Book is being saved: the button shows it is busy and the
+     * menu's choices are disabled. The button itself stays focusable, so the
+     * menu can hand focus back to it when it closes.
      */
-    disabled?: boolean;
+    saving?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -64,7 +65,9 @@ function chooseRating(value: unknown): void {
                 :id="`entry-menu-${entry.id}`"
                 variant="secondary"
                 size="icon"
-                class="size-9 rounded-full shadow-md"
+                class="size-9 rounded-full shadow-md transition-opacity"
+                :class="{ 'animate-pulse opacity-60': saving }"
+                :aria-busy="saving || undefined"
                 :aria-label="`Change “${entry.book.title}”`"
             >
                 <EllipsisVertical />
@@ -80,7 +83,7 @@ function chooseRating(value: unknown): void {
                     v-for="status in statuses"
                     :key="status.value"
                     :value="status.value"
-                    :disabled="disabled"
+                    :disabled="saving"
                     class="min-h-9"
                 >
                     {{ status.text }}
@@ -98,7 +101,7 @@ function chooseRating(value: unknown): void {
             >
                 <DropdownMenuRadioItem
                     :value="NO_RATING"
-                    :disabled="disabled"
+                    :disabled="saving"
                     class="min-h-9"
                 >
                     No Rating
@@ -107,7 +110,7 @@ function chooseRating(value: unknown): void {
                     v-for="rating in ratings"
                     :key="rating"
                     :value="String(rating)"
-                    :disabled="disabled"
+                    :disabled="saving"
                     class="min-h-9"
                 >
                     <span class="sr-only">
@@ -127,7 +130,7 @@ function chooseRating(value: unknown): void {
 
             <DropdownMenuItem
                 variant="destructive"
-                :disabled="disabled"
+                :disabled="saving"
                 class="min-h-9"
                 @select="emit('remove')"
             >
