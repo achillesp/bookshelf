@@ -88,7 +88,7 @@ erDiagram
 - [x] **Library Entry page: dates and Notes** (AFK)
   - AC: edit status, rating, dates, notes; future dates or Finished < Started show errors; shows ~pages
   - Blocked by: Task 3 (extends its update endpoint)
-- [ ] **Dashboard stats** (AFK)
+- [x] **Dashboard stats** (AFK)
   - AC: with factory entries, shows currently Reading, status counts, monthly bars for `?year=` (select lists years with Completed entries), top 10 Authors counting co-authored Books for each; empty states for a new Reader
   - Blocked by: Task 2
 - [ ] **App-wide OpenLibrary limit** (AFK)
