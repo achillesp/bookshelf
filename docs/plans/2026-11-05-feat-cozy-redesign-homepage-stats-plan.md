@@ -1,5 +1,5 @@
 ---
-title: "feat: Cozy redesign with homepage, top-bar navigation and Stats page"
+title: 'feat: Cozy redesign with homepage, top-bar navigation and Stats page'
 type: feat
 date: 2026-11-05
 branch: feat/cozy-redesign
@@ -81,29 +81,29 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 ## Task Breakdown
 
 - [x] **Visual identity: theme, fonts, logo and favicon** (HITL: palette, font and logo review)
-  - AC: all pages render the approved palette and Fraunces/Nunito in both modes; html background matches on first paint; contrast script passes AA for every pair; no animation under reduced motion; `<link rel="preload">` only for above-the-fold weights; new logo in app and auth screens and new favicon in the tab; no Laravel mark in `resources/js` or `public/`
-  - Blocked by: none
+    - AC: all pages render the approved palette and Fraunces/Nunito in both modes; html background matches on first paint; contrast script passes AA for every pair; no animation under reduced motion; `<link rel="preload">` only for above-the-fold weights; new logo in app and auth screens and new favicon in the tab; no Laravel mark in `resources/js` or `public/`
+    - Blocked by: none
 - [x] **Stats page backed by ReadingStats** (AFK)
-  - AC: queries live in `ReadingStats` and `DashboardTest.php` still passes before the page is added; `/stats` shows status counts, month chart with year select, top Authors; `StatsTest.php` covers year, years, empty `?year=`, rejected years, top Authors, guest and unverified redirects; the nav link arrives with Task 3
-  - Blocked by: Task 1
+    - AC: queries live in `ReadingStats` and `DashboardTest.php` still passes before the page is added; `/stats` shows status counts, month chart with year select, top Authors; `StatsTest.php` covers year, years, empty `?year=`, rejected years, top Authors, guest and unverified redirects; the nav link arrives with Task 3
+    - Blocked by: Task 1
 - [x] **Top bar and mobile bottom tabs replace the sidebar** (AFK)
-  - AC: Dashboard · Search · Library · Stats with active state at 1280px and 375px; avatar menu reaches Settings and Log out; no sidebar renders and `components/ui/sidebar` is gone; toasts still show
-  - Blocked by: Task 2
+    - AC: Dashboard · Search · Library · Stats with active state at 1280px and 375px; avatar menu reaches Settings and Log out; no sidebar renders and `components/ui/sidebar` is gone; toasts still show
+    - Blocked by: Task 2
 - [x] **Dashboard reading corner with stats summary** (AFK)
-  - AC: greeting, Reading covers, 4 tiles, sparkline with sr-only table, link to Stats; new-voice empty states; `DashboardTest.php` asserts summary props and that `?year=2020` is a 200
-  - Blocked by: Task 2
+    - AC: greeting, Reading covers, 4 tiles, sparkline with sr-only table, link to Stats; new-voice empty states; `DashboardTest.php` asserts summary props and that `?year=2020` is a 200
+    - Blocked by: Task 2
 - [x] **Library shelves, quick menu, Search and Library Entry pages** (AFK)
-  - AC: Library covers on shelf rows; Status, Rating and Remove work from each cover's menu by keyboard and touch; filters, sort, pagination unchanged; Search and Library Entry restyled with covers prominent; typing Notes then changing Status keeps the typed text; flashes reworded; Library and Search tests green
-  - Blocked by: Task 1
+    - AC: Library covers on shelf rows; Status, Rating and Remove work from each cover's menu by keyboard and touch; filters, sort, pagination unchanged; Search and Library Entry restyled with covers prominent; typing Notes then changing Status keeps the typed text; flashes reworded; Library and Search tests green
+    - Blocked by: Task 1
 - [x] **Public homepage with guest-only route** (HITL: copy and layout review)
-  - AC: guest sees Hero, How it works, Peek inside, CTA, footer at 1280px and 375px; signed-in `/` redirects to `/dashboard` (`ExampleTest.php`)
-  - Blocked by: Task 1
+    - AC: guest sees Hero, How it works, Peek inside, CTA, footer at 1280px and 375px; signed-in `/` redirects to `/dashboard` (`ExampleTest.php`)
+    - Blocked by: Task 1
 - [x] **Auth screens with illustration** (AFK)
-  - AC: login, register, forgot and reset use the split layout with illustration in both modes; `AuthCardLayout.vue` and `AuthSimpleLayout.vue` gone; auth tests green
-  - Blocked by: Task 1
+    - AC: login, register, forgot and reset use the split layout with illustration in both modes; `AuthCardLayout.vue` and `AuthSimpleLayout.vue` gone; auth tests green
+    - Blocked by: Task 1
 - [x] **Tests do not depend on the dev server's SSR** (AFK, added during Task 5)
-  - AC: `config/inertia.php` reads `INERTIA_SSR_ENABLED` (default `true`); `phpunit.xml` sets it to `false`; `SearchTest.php` green while `composer dev` runs
-  - Blocked by: none
+    - AC: `config/inertia.php` reads `INERTIA_SSR_ENABLED` (default `true`); `phpunit.xml` sets it to `false`; `SearchTest.php` green while `composer dev` runs
+    - Blocked by: none
 
 ## Verification
 
@@ -116,13 +116,13 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 
 ## Not in MVP
 
-| # | Kind | Item | Detail |
-| --- | --- | --- | --- |
-| 1 | extra | Sourced hero illustration | Swap the SVG placeholder for a licensed or user-made illustration; 0 concepts; waits on an external asset |
-| 2 | risk (`inferred`) | Many missing covers make shelves look patchy | Trigger: fallback covers dominate the browser pass → style the fallback as a cloth-bound cover with the title |
-| 3 | extra | Font preloading | promoted (Task 1) |
-| 4 | extra | Dark-scheme favicon variant | Favicon adapts to the OS theme; 0 concepts; no requirement |
-| 5 | extra | Delete unused `ui/sidebar`, `AuthCardLayout`, `AuthSimpleLayout` | promoted (Tasks 3, 7) |
+| #   | Kind              | Item                                                             | Detail                                                                                                        |
+| --- | ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| 1   | extra             | Sourced hero illustration                                        | Swap the SVG placeholder for a licensed or user-made illustration; 0 concepts; waits on an external asset     |
+| 2   | risk (`inferred`) | Many missing covers make shelves look patchy                     | Trigger: fallback covers dominate the browser pass → style the fallback as a cloth-bound cover with the title |
+| 3   | extra             | Font preloading                                                  | promoted (Task 1)                                                                                             |
+| 4   | extra             | Dark-scheme favicon variant                                      | Favicon adapts to the OS theme; 0 concepts; no requirement                                                    |
+| 5   | extra             | Delete unused `ui/sidebar`, `AuthCardLayout`, `AuthSimpleLayout` | promoted (Tasks 3, 7)                                                                                         |
 
 ## Deviations
 

@@ -1,5 +1,5 @@
 ---
-title: "feat: BookShelf MVP library, tracking and stats"
+title: 'feat: BookShelf MVP library, tracking and stats'
 type: feat
 date: 2026-11-05
 branch: main
@@ -77,32 +77,32 @@ erDiagram
 ## Task Breakdown
 
 - [x] **Search OpenLibrary from a Search page** (AFK)
-  - AC: `/search?q=dune` shows Dune with cover, Authors, year, ~608 pages; repeat search makes no HTTP call and is not rate-limited; connection failure shows "search unavailable"; 21st uncached OpenLibrary call in a minute shows a rate-limit toast; Search in sidebar
-  - Blocked by: none
+    - AC: `/search?q=dune` shows Dune with cover, Authors, year, ~608 pages; repeat search makes no HTTP call and is not rate-limited; connection failure shows "search unavailable"; 21st uncached OpenLibrary call in a minute shows a rate-limit toast; Search in sidebar
+    - Blocked by: none
 - [x] **Add a search result to the Library** (AFK)
-  - AC: Add defaults to Want to Read; creates Book, Authors, entry with auto-filled dates; adding right after a search makes no HTTP call (per-work cache); existing Book makes no HTTP call; uncached new Book counts toward the rate limit; result then shows "In your Library"; duplicate rejected; OpenLibrary down on a new Book → error toast, no rows
-  - Blocked by: Task 1
+    - AC: Add defaults to Want to Read; creates Book, Authors, entry with auto-filled dates; adding right after a search makes no HTTP call (per-work cache); existing Book makes no HTTP call; uncached new Book counts toward the rate limit; result then shows "In your Library"; duplicate rejected; OpenLibrary down on a new Book → error toast, no rows
+    - Blocked by: Task 1
 - [x] **Library page: browse, quick edit, remove** (AFK)
-  - AC: filter/sort/paginate keep the query string; inline status/rating persist and apply date rules; remove after confirm; other Readers' entries → 404; Library in sidebar
-  - Blocked by: Task 2
+    - AC: filter/sort/paginate keep the query string; inline status/rating persist and apply date rules; remove after confirm; other Readers' entries → 404; Library in sidebar
+    - Blocked by: Task 2
 - [x] **Library Entry page: dates and Notes** (AFK)
-  - AC: edit status, rating, dates, notes; future dates or Finished < Started show errors; shows ~pages
-  - Blocked by: Task 3 (extends its update endpoint)
+    - AC: edit status, rating, dates, notes; future dates or Finished < Started show errors; shows ~pages
+    - Blocked by: Task 3 (extends its update endpoint)
 - [x] **Dashboard stats** (AFK)
-  - AC: with factory entries, shows currently Reading, status counts, monthly bars for `?year=` (select lists years with Completed entries), top 10 Authors counting co-authored Books for each; empty states for a new Reader
-  - Blocked by: Task 2
+    - AC: with factory entries, shows currently Reading, status counts, monthly bars for `?year=` (select lists years with Completed entries), top 10 Authors counting co-authored Books for each; empty states for a new Reader
+    - Blocked by: Task 2
 - [x] **App-wide OpenLibrary limit** (AFK)
-  - AC: with the per-Reader limit not reached, a 4th uncached OpenLibrary call within one second (any Readers) shows the "busy" toast and makes no HTTP call; per-Reader 20/min still applies
-  - Blocked by: Task 1
+    - AC: with the per-Reader limit not reached, a 4th uncached OpenLibrary call within one second (any Readers) shows the "busy" toast and makes no HTTP call; per-Reader 20/min still applies
+    - Blocked by: Task 1
 - [x] **Library indexes** (AFK)
-  - AC: `library_entries` has indexes `(user_id, status)` and `(user_id, finished_on)` (added to its migration; nothing is deployed); `php artisan migrate:fresh` succeeds
-  - Blocked by: Task 2
+    - AC: `library_entries` has indexes `(user_id, status)` and `(user_id, finished_on)` (added to its migration; nothing is deployed); `php artisan migrate:fresh` succeeds
+    - Blocked by: Task 2
 - [x] **Starter-kit cleanup** (AFK)
-  - AC: sidebar footer has no starter-kit repo/docs links (`resources/js/components/AppSidebar.vue:28-39`); `.env.example` has `APP_NAME=BookShelf`
-  - Blocked by: none
+    - AC: sidebar footer has no starter-kit repo/docs links (`resources/js/components/AppSidebar.vue:28-39`); `.env.example` has `APP_NAME=BookShelf`
+    - Blocked by: none
 - [x] **Amend ADR-001 for the add lookup** (AFK)
-  - AC: ADR-001 amended: "adding a book needs no extra API request while its search result is cached; otherwise one rate-limited lookup"
-  - Blocked by: none
+    - AC: ADR-001 amended: "adding a book needs no extra API request while its search result is cached; otherwise one rate-limited lookup"
+    - Blocked by: none
 
 ## Verification
 
@@ -114,17 +114,17 @@ erDiagram
 
 ## Not in MVP
 
-| # | Kind | Item | Detail |
-| --- | --- | --- | --- |
-| 1 | risk (`inferred`) | All Readers share the server's OpenLibrary allowance | **promoted** (Task 6) |
-| 2 | risk (`inferred`) | Duplicate-key error if two Readers first-import the same Book at once | Trigger: unique violation in logs → retry the action once |
-| 3 | extra | Optimistic inline status/rating | Instant UI; +1 concept; plain patch is fast enough |
-| 4 | extra | Partial reload for the year select | Less data per switch; +1 concept |
-| 5 | extra | Env-tunable cache TTL / search limit | +2 settings; no deploy yet |
-| 6 | extra | Indexes `(user_id, status)`, `(user_id, finished_on)` | **promoted** (Task 7) |
-| 7 | extra | Remove starter-kit footer links, set `APP_NAME` | **promoted** (Task 8) |
-| 8 | extra | Deferred search results; Redis cache; Author order on a Book | +1 concept each (Redis: later, per user) |
-| 9 | risk (`inferred`) | Expired search cache rows pile up in the database `cache` table (~21 rows per uncached search) | Trigger: `cache` table row count keeps growing → schedule deletion of expired rows, or move to Redis (row 8) |
+| #   | Kind              | Item                                                                                           | Detail                                                                                                       |
+| --- | ----------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1   | risk (`inferred`) | All Readers share the server's OpenLibrary allowance                                           | **promoted** (Task 6)                                                                                        |
+| 2   | risk (`inferred`) | Duplicate-key error if two Readers first-import the same Book at once                          | Trigger: unique violation in logs → retry the action once                                                    |
+| 3   | extra             | Optimistic inline status/rating                                                                | Instant UI; +1 concept; plain patch is fast enough                                                           |
+| 4   | extra             | Partial reload for the year select                                                             | Less data per switch; +1 concept                                                                             |
+| 5   | extra             | Env-tunable cache TTL / search limit                                                           | +2 settings; no deploy yet                                                                                   |
+| 6   | extra             | Indexes `(user_id, status)`, `(user_id, finished_on)`                                          | **promoted** (Task 7)                                                                                        |
+| 7   | extra             | Remove starter-kit footer links, set `APP_NAME`                                                | **promoted** (Task 8)                                                                                        |
+| 8   | extra             | Deferred search results; Redis cache; Author order on a Book                                   | +1 concept each (Redis: later, per user)                                                                     |
+| 9   | risk (`inferred`) | Expired search cache rows pile up in the database `cache` table (~21 rows per uncached search) | Trigger: `cache` table row count keeps growing → schedule deletion of expired rows, or move to Redis (row 8) |
 
 ## Risks & Dependencies
 
