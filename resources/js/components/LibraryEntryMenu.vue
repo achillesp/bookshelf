@@ -1,0 +1,161 @@
+<script setup lang="ts">
+import { EllipsisVertical, Star, Trash2 } from '@lucide/vue';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { focusAndReveal } from '@/lib/utils';
+import { READING_STATUS_LABELS } from '@/types';
+import type { LibraryEntry, ReadingStatus } from '@/types';
+
+const props = defineProps<{
+    entry: LibraryEntry;
+    /**
+     * A change to this Book is being saved: the button shows it is busy and the
+     * menu's choices are disabled. The button itself stays focusable, so the
+     * menu can hand focus back to it when it closes.
+     */
+    saving?: boolean;
+}>();
+
+const emit = defineEmits<{
+    status: [status: ReadingStatus];
+    rating: [rating: number | null];
+    remove: [];
+}>();
+
+const NO_RATING = 'none';
+
+const statuses = Object.entries(READING_STATUS_LABELS).map(([value, text]) => ({
+    value,
+    text,
+}));
+
+const ratings = [1, 2, 3, 4, 5];
+
+function isReadingStatus(value: unknown): value is ReadingStatus {
+    return typeof value === 'string' && value in READING_STATUS_LABELS;
+}
+
+function chooseStatus(value: unknown): void {
+    if (isReadingStatus(value) && value !== props.entry.status) {
+        emit('status', value);
+    }
+}
+
+/**
+ * When the menu closes, focus goes back to its button. A save may already have
+ * moved this Book (the default sort puts it first), so the shelf scrolls to it
+ * instead of jumping there.
+ */
+function returnFocus(event: Event): void {
+    const trigger = document.getElementById(`entry-menu-${props.entry.id}`);
+
+    if (trigger !== null) {
+        event.preventDefault();
+        focusAndReveal(trigger, trigger.closest('li') ?? trigger);
+    }
+}
+
+function chooseRating(value: unknown): void {
+    const rating = value === NO_RATING ? null : Number(value);
+
+    if (rating !== props.entry.rating) {
+        emit('rating', rating);
+    }
+}
+</script>
+
+<template>
+    <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+            <Button
+                :id="`entry-menu-${entry.id}`"
+                variant="secondary"
+                size="icon"
+                class="size-9 rounded-full shadow-md transition-opacity"
+                :class="{ 'animate-pulse opacity-60': saving }"
+                :aria-busy="saving || undefined"
+                :aria-label="`Change “${entry.book.title}”`"
+            >
+                <EllipsisVertical />
+            </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+            align="end"
+            class="w-56"
+            @close-auto-focus="returnFocus"
+        >
+            <DropdownMenuLabel>Reading Status</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+                :model-value="entry.status"
+                @update:model-value="chooseStatus"
+            >
+                <DropdownMenuRadioItem
+                    v-for="status in statuses"
+                    :key="status.value"
+                    :value="status.value"
+                    :disabled="saving"
+                    class="min-h-9"
+                >
+                    {{ status.text }}
+                </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuLabel>Rating</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+                :model-value="
+                    entry.rating === null ? NO_RATING : String(entry.rating)
+                "
+                @update:model-value="chooseRating"
+            >
+                <DropdownMenuRadioItem
+                    :value="NO_RATING"
+                    :disabled="saving"
+                    class="min-h-9"
+                >
+                    No Rating
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                    v-for="rating in ratings"
+                    :key="rating"
+                    :value="String(rating)"
+                    :disabled="saving"
+                    class="min-h-9"
+                >
+                    <span class="sr-only">
+                        {{ rating }} {{ rating === 1 ? 'star' : 'stars' }}
+                    </span>
+                    <span aria-hidden="true" class="flex gap-0.5">
+                        <Star
+                            v-for="star in rating"
+                            :key="star"
+                            class="size-4 fill-star text-star"
+                        />
+                    </span>
+                </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+                variant="destructive"
+                :disabled="saving"
+                class="min-h-9"
+                @select="emit('remove')"
+            >
+                <Trash2 />
+                Remove from Library…
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>
+</template>

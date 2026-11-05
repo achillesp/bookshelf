@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ChevronLeft, ChevronRight, Search, Trash2 } from '@lucide/vue';
-import { ref } from 'vue';
+import { ChevronLeft, ChevronRight, Search, Star } from '@lucide/vue';
+import { nextTick, ref } from 'vue';
 import BookCover from '@/components/BookCover.vue';
-import RatingInput from '@/components/RatingInput.vue';
-import ReadingStatusSelect from '@/components/ReadingStatusSelect.vue';
+import LibraryEntryMenu from '@/components/LibraryEntryMenu.vue';
+import ReadingStatusBadge from '@/components/ReadingStatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -23,21 +23,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { focusAndReveal } from '@/lib/utils';
 import { search } from '@/routes';
 import { destroy, index, show, update } from '@/routes/library';
 import { READING_STATUS_LABELS } from '@/types';
 import type { LibraryEntry, Paginated, ReadingStatus } from '@/types';
-
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Library',
-                href: index(),
-            },
-        ],
-    },
-});
 
 type LibrarySort = 'updated' | 'title' | 'finished';
 
@@ -65,6 +55,8 @@ const sortOptions: { value: LibrarySort; text: string }[] = [
 const saving = ref<number | null>(null);
 const entryToRemove = ref<LibraryEntry | null>(null);
 const removing = ref(false);
+const positionToRefocus = ref<number | null>(null);
+const announcement = ref('');
 
 function visitWith(filters: {
     status: ReadingStatus | null;
@@ -107,13 +99,30 @@ function save(
     entry: LibraryEntry,
     data: { status: ReadingStatus } | { rating: number | null },
 ): void {
+    const position = positionOf(entry);
+
     router.patch(update.url(entry.id), data, {
         preserveScroll: true,
         onStart: () => {
             saving.value = entry.id;
+            announcement.value = '';
+        },
+        onSuccess: () => {
+            nextTick(() => {
+                announcement.value = savedMessage(
+                    entry.book.title,
+                    position,
+                    positionOf(entry),
+                );
+            });
         },
         onFinish: () => {
             saving.value = null;
+            nextTick(() => {
+                if (document.activeElement === document.body) {
+                    focusChangedBook(entry.id, position);
+                }
+            });
         },
     });
 }
@@ -135,6 +144,83 @@ function remove(): void {
     });
 }
 
+function authorNames(entry: LibraryEntry): string {
+    return entry.book.authors.map((author) => author.name).join(', ');
+}
+
+/**
+ * What a screen reader hears after a save: whether the changed Book moved, and
+ * where to, since the sort can carry it to another place on the shelf.
+ */
+function savedMessage(title: string, before: number, after: number): string {
+    if (after === -1) {
+        return `“${title}” saved. It's no longer on this page.`;
+    }
+
+    if (after === before) {
+        return `“${title}” saved.`;
+    }
+
+    return after === 0
+        ? `“${title}” saved and moved to the front of your Library.`
+        : `“${title}” saved and moved to place ${after + 1} on this page.`;
+}
+
+function positionOf(entry: LibraryEntry): number {
+    return props.entries.data.findIndex((item) => item.id === entry.id);
+}
+
+/**
+ * Focus stays on the changed Book: when the sort moved it (the default sort
+ * puts it first), the shelf scrolls to its new place, smoothly unless the
+ * Reader prefers reduced motion. A Book that left the page or the filter
+ * hands focus to the Book now in its old place.
+ */
+function focusChangedBook(entryId: number, position: number): void {
+    const trigger = document.getElementById(`entry-menu-${entryId}`);
+
+    if (trigger === null) {
+        focusMenuOrNeighbour(position);
+
+        return;
+    }
+
+    focusAndReveal(trigger, trigger.closest('li') ?? trigger);
+}
+
+/**
+ * Focuses the menu button of the Book now at the given position (the removed
+ * or departed Book's old place), so the Reader keeps their place. The heading
+ * is the fallback only for an empty shelf.
+ */
+function focusMenuOrNeighbour(position: number): void {
+    const entries = props.entries.data;
+    const inPlace = entries[Math.min(position, entries.length - 1)];
+    const target =
+        (inPlace
+            ? document.getElementById(`entry-menu-${inPlace.id}`)
+            : null) ?? document.getElementById('library-heading');
+
+    target?.focus();
+}
+
+/**
+ * The remove dialog was opened from a menu item that no longer exists, so focus
+ * goes back to that Book's menu button, or to the Book now in its place.
+ */
+function restoreFocus(event: Event): void {
+    event.preventDefault();
+
+    if (positionToRefocus.value !== null) {
+        focusMenuOrNeighbour(positionToRefocus.value);
+    }
+}
+
+function confirmRemove(entry: LibraryEntry): void {
+    positionToRefocus.value = positionOf(entry);
+    entryToRemove.value = entry;
+}
+
 function formatDate(date: string): string {
     return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, {
         year: 'numeric',
@@ -147,153 +233,169 @@ function formatDate(date: string): string {
 <template>
     <Head title="Library" />
 
-    <div class="flex h-full flex-1 flex-col gap-6 p-4">
-        <h1 class="sr-only">Library</h1>
-
-        <div class="flex flex-wrap items-end gap-4">
-            <div class="grid gap-2">
-                <Label for="status-filter">Reading Status</Label>
-                <Select
-                    :model-value="filters.status ?? ALL_STATUSES"
-                    @update:model-value="filterByStatus"
+    <div class="flex flex-col gap-8 px-4 py-8">
+        <header class="flex flex-wrap items-end justify-between gap-6">
+            <div class="flex flex-col gap-1">
+                <h1
+                    id="library-heading"
+                    tabindex="-1"
+                    class="text-3xl font-bold tracking-tight focus:outline-none"
                 >
-                    <SelectTrigger id="status-filter" class="w-40">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem
-                            v-for="option in statusOptions"
-                            :key="option.value"
-                            :value="option.value"
-                        >
-                            {{ option.text }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div class="grid gap-2">
-                <Label for="sort">Sort by</Label>
-                <Select
-                    :model-value="filters.sort"
-                    @update:model-value="sortBy"
+                    Your Library
+                </h1>
+                <p class="sr-only" aria-live="polite">{{ announcement }}</p>
+                <p
+                    v-if="entries.total > 0"
+                    class="text-muted-foreground"
+                    aria-live="polite"
                 >
-                    <SelectTrigger id="sort" class="w-44">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem
-                            v-for="option in sortOptions"
-                            :key="option.value"
-                            :value="option.value"
-                        >
-                            {{ option.text }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
+                    {{ entries.total }}
+                    {{ entries.total === 1 ? 'Book' : 'Books' }}
+                    {{
+                        filters.status
+                            ? `marked ${READING_STATUS_LABELS[filters.status]}`
+                            : 'in your Library'
+                    }}
+                </p>
             </div>
-            <p
-                v-if="entries.total > 0"
-                class="text-sm text-muted-foreground md:ml-auto"
-                aria-live="polite"
-            >
-                {{ entries.total }}
-                {{ entries.total === 1 ? 'Book' : 'Books' }}
-            </p>
-        </div>
+            <div class="flex flex-wrap items-end gap-4">
+                <div class="grid gap-2">
+                    <Label for="status-filter">Reading Status</Label>
+                    <Select
+                        :model-value="filters.status ?? ALL_STATUSES"
+                        @update:model-value="filterByStatus"
+                    >
+                        <SelectTrigger id="status-filter" class="w-40">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="option in statusOptions"
+                                :key="option.value"
+                                :value="option.value"
+                            >
+                                {{ option.text }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div class="grid gap-2">
+                    <Label for="sort">Sort by</Label>
+                    <Select
+                        :model-value="filters.sort"
+                        @update:model-value="sortBy"
+                    >
+                        <SelectTrigger id="sort" class="w-44">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="option in sortOptions"
+                                :key="option.value"
+                                :value="option.value"
+                            >
+                                {{ option.text }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+        </header>
 
         <div
             v-if="entries.data.length === 0"
-            class="flex flex-col items-start gap-3 rounded-xl border border-dashed border-sidebar-border/70 p-6 dark:border-sidebar-border"
+            class="flex flex-col items-start gap-4 rounded-2xl border border-dashed bg-card p-6"
         >
-            <p class="text-sm text-muted-foreground">
+            <p class="text-muted-foreground">
                 {{
                     filters.status
-                        ? `No Books with the status ${READING_STATUS_LABELS[filters.status]}.`
-                        : 'Your Library is empty.'
+                        ? `Nothing marked ${READING_STATUS_LABELS[filters.status]} right now.`
+                        : 'Your Library is waiting for its first Book.'
                 }}
             </p>
-            <Button as-child variant="outline" size="sm">
+            <Button as-child>
                 <Link :href="search()">
                     <Search />
-                    Find books to add
+                    Find Books to add
                 </Link>
             </Button>
         </div>
 
-        <ul v-else class="flex flex-col gap-3">
+        <ul
+            v-else
+            class="grid grid-cols-2 gap-y-10 overflow-x-clip sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        >
             <li
                 v-for="entry in entries.data"
                 :key="entry.id"
-                class="flex gap-4 rounded-xl border border-sidebar-border/70 p-3 dark:border-sidebar-border"
+                class="group/book flex scroll-mt-24 scroll-mb-20 flex-col"
             >
-                <BookCover
-                    :cover-id="entry.book.cover_id"
-                    :title="entry.book.title"
-                    class="w-16"
+                <div class="relative px-3 pt-4 sm:px-5">
+                    <Link
+                        :href="show(entry.id)"
+                        tabindex="-1"
+                        aria-hidden="true"
+                        class="block transition-transform duration-200 group-hover/book:-translate-y-1"
+                    >
+                        <BookCover
+                            :cover-id="entry.book.cover_id"
+                            :title="entry.book.title"
+                            size="L"
+                            class="w-full rounded-l-sm rounded-r-md shadow-md"
+                        />
+                    </Link>
+                    <div class="absolute top-2 right-1 sm:right-3">
+                        <LibraryEntryMenu
+                            :entry="entry"
+                            :saving="saving === entry.id"
+                            @status="save(entry, { status: $event })"
+                            @rating="save(entry, { rating: $event })"
+                            @remove="confirmRemove(entry)"
+                        />
+                    </div>
+                </div>
+                <div
+                    aria-hidden="true"
+                    class="h-3.5 bg-linear-to-b from-wood from-60% to-wood-edge shadow-[0_10px_12px_-10px_rgb(40_20_5/0.6)] group-last/book:-mr-[100vw]"
                 />
-                <div class="flex min-w-0 flex-1 flex-col gap-1">
-                    <h2 class="font-medium">
+                <div class="flex flex-col gap-1.5 px-3 pt-4 sm:px-5">
+                    <h2 class="line-clamp-2 leading-snug font-bold">
                         <Link
                             :href="show(entry.id)"
-                            class="hover:underline focus-visible:underline"
+                            class="rounded-sm hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                         >
                             {{ entry.book.title }}
                         </Link>
                     </h2>
                     <p
                         v-if="entry.book.authors.length > 0"
-                        class="text-sm text-muted-foreground"
+                        class="line-clamp-1 text-sm text-muted-foreground"
                     >
-                        {{
-                            entry.book.authors
-                                .map((author) => author.name)
-                                .join(', ')
-                        }}
+                        {{ authorNames(entry) }}
                     </p>
-                    <p class="text-sm text-muted-foreground">
-                        <span v-if="entry.book.page_count_median">
-                            ~{{ entry.book.page_count_median }} pages
-                        </span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <ReadingStatusBadge :status="entry.status" />
                         <span
-                            v-if="
-                                entry.book.page_count_median &&
-                                entry.finished_on
-                            "
-                            aria-hidden="true"
+                            v-if="entry.rating !== null"
+                            class="flex items-center gap-0.5"
                         >
-                            ·
+                            <span class="sr-only">
+                                Rated {{ entry.rating }} out of 5
+                            </span>
+                            <Star
+                                v-for="star in entry.rating"
+                                :key="star"
+                                aria-hidden="true"
+                                class="size-3.5 fill-star text-star"
+                            />
                         </span>
-                        <span v-if="entry.finished_on">
-                            Finished {{ formatDate(entry.finished_on) }}
-                        </span>
-                    </p>
-                    <div class="mt-2 flex flex-wrap items-center gap-3">
-                        <ReadingStatusSelect
-                            :model-value="entry.status"
-                            :label="`Reading Status of ${entry.book.title}`"
-                            :disabled="saving === entry.id"
-                            @update:model-value="
-                                save(entry, { status: $event })
-                            "
-                        />
-                        <RatingInput
-                            :model-value="entry.rating"
-                            :label="`Rating of ${entry.book.title}`"
-                            :disabled="saving === entry.id"
-                            @update:model-value="
-                                save(entry, { rating: $event })
-                            "
-                        />
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            class="ml-auto"
-                            :aria-label="`Remove ${entry.book.title} from your Library`"
-                            @click="entryToRemove = entry"
-                        >
-                            <Trash2 />
-                        </Button>
                     </div>
+                    <p
+                        v-if="entry.finished_on"
+                        class="text-xs text-muted-foreground"
+                    >
+                        Finished {{ formatDate(entry.finished_on) }}
+                    </p>
                 </div>
             </li>
         </ul>
@@ -340,7 +442,7 @@ function formatDate(date: string): string {
                 }
             "
         >
-            <DialogContent>
+            <DialogContent @close-auto-focus="restoreFocus">
                 <DialogHeader>
                     <DialogTitle>
                         Remove “{{ entryToRemove?.book.title }}”?
@@ -352,7 +454,7 @@ function formatDate(date: string): string {
                 </DialogHeader>
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
-                        <Button variant="secondary">Cancel</Button>
+                        <Button variant="secondary">Keep it</Button>
                     </DialogClose>
                     <Button
                         variant="destructive"

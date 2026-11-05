@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Form, Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, Link, router } from '@inertiajs/vue3';
+import { ArrowLeft } from '@lucide/vue';
 import { ref } from 'vue';
 import BookCover from '@/components/BookCover.vue';
 import InputError from '@/components/InputError.vue';
@@ -8,19 +9,12 @@ import ReadingStatusSelect from '@/components/ReadingStatusSelect.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { index, show, update } from '@/routes/library';
+import { index, update } from '@/routes/library';
 import type { LibraryEntry, ReadingStatus } from '@/types';
 
 const props = defineProps<{
     entry: LibraryEntry;
 }>();
-
-setLayoutProps({
-    breadcrumbs: [
-        { title: 'Library', href: index() },
-        { title: props.entry.book.title, href: show(props.entry.id) },
-    ],
-});
 
 const savedMessage = ref('');
 
@@ -42,21 +36,29 @@ function save(
 <template>
     <Head :title="entry.book.title" />
 
-    <div class="flex h-full max-w-3xl flex-1 flex-col gap-8 p-4">
-        <div class="flex gap-6">
+    <div class="flex flex-col gap-8 px-4 py-8">
+        <Link
+            :href="index()"
+            class="inline-flex items-center gap-1.5 self-start rounded-md text-sm font-semibold text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+            <ArrowLeft aria-hidden="true" class="size-4" />
+            Back to your Library
+        </Link>
+
+        <div class="flex flex-col gap-6 sm:flex-row sm:gap-8">
             <BookCover
                 :cover-id="entry.book.cover_id"
                 :title="entry.book.title"
                 size="L"
-                class="w-28 sm:w-36"
+                class="w-36 rounded-l-sm rounded-r-md shadow-lg sm:w-48"
             />
-            <div class="flex min-w-0 flex-col gap-1">
-                <h1 class="text-xl font-semibold tracking-tight">
+            <div class="flex min-w-0 flex-col gap-2">
+                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
                     {{ entry.book.title }}
                 </h1>
                 <p
                     v-if="entry.book.authors.length > 0"
-                    class="text-muted-foreground"
+                    class="text-lg text-muted-foreground"
                 >
                     {{
                         entry.book.authors
@@ -81,7 +83,7 @@ function save(
                         ~{{ entry.book.page_count_median }} pages
                     </span>
                 </p>
-                <div class="mt-3 flex flex-wrap items-center gap-3">
+                <div class="mt-4 flex flex-wrap items-center gap-3">
                     <ReadingStatusSelect
                         :model-value="entry.status"
                         label="Reading Status"
@@ -100,7 +102,7 @@ function save(
             :key="`${entry.started_on}|${entry.finished_on}`"
             v-bind="update.form(entry.id)"
             :options="{ preserveScroll: true }"
-            class="flex flex-col gap-6"
+            class="flex max-w-3xl flex-col gap-6 rounded-2xl border bg-card p-5 shadow-sm"
             v-slot="{ errors, processing }"
             @start="savedMessage = ''"
             @success="savedMessage = 'Dates and Notes saved.'"
@@ -154,7 +156,7 @@ function save(
                     rows="8"
                     maxlength="10000"
                     class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive dark:bg-input/30"
-                    placeholder="What did you think?"
+                    placeholder="Favourite line, a plot twist, how it made you feel…"
                     v-model="notes"
                     :aria-invalid="errors.notes ? true : undefined"
                     :aria-describedby="errors.notes ? 'notes-error' : undefined"
@@ -167,7 +169,7 @@ function save(
             </Button>
         </Form>
 
-        <p class="-mt-6 text-sm text-muted-foreground" aria-live="polite">
+        <p class="-mt-4 text-sm text-muted-foreground" aria-live="polite">
             {{ savedMessage }}
         </p>
     </div>

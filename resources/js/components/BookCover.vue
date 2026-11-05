@@ -29,7 +29,7 @@ const src = computed(() =>
 
 <template>
     <div
-        class="flex aspect-[2/3] shrink-0 items-center justify-center overflow-hidden rounded-md border border-sidebar-border/70 bg-muted dark:border-sidebar-border"
+        class="flex aspect-[2/3] shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted"
     >
         <img
             v-if="src"

@@ -32,7 +32,7 @@ test('adding a search result creates the Book, its Authors and a Want to Read en
 
     $response->assertRedirect(route('search', ['q' => 'dune']))
         ->assertInertiaFlash('toast.type', 'success')
-        ->assertInertiaFlash('toast.message', 'Added “Dune” to your Library.');
+        ->assertInertiaFlash('toast.message', '“Dune” just joined your Library. Happy reading!');
     Http::assertSentCount(1);
     $book = Book::sole();
     expect($book->only(['openlibrary_id', 'title', 'first_publish_year', 'cover_id', 'page_count_median']))->toBe([
@@ -108,7 +108,7 @@ test('adding a Book already in the Library is rejected', function () {
     ]);
 
     $response->assertInertiaFlash('toast.type', 'info')
-        ->assertInertiaFlash('toast.message', "“{$entry->book->title}” is already in your Library.");
+        ->assertInertiaFlash('toast.message', "“{$entry->book->title}” is already in your Library, so you're all set.");
     expect(LibraryEntry::sole()->status)->toBe(ReadingStatus::Completed);
 });
 
@@ -120,7 +120,7 @@ test('adding a new Book while OpenLibrary is down shows an error and creates not
     $response = $this->actingAs($reader)->post(route('library.store'), ['openlibrary_id' => 'OL893414W']);
 
     $response->assertInertiaFlash('toast.type', 'error')
-        ->assertInertiaFlash('toast.message', 'Book search is unavailable right now. Please try again later.');
+        ->assertInertiaFlash('toast.message', "We can't reach the Book catalogue right now. Give it a minute and try again.");
     expect(Book::count())->toBe(0)
         ->and(Author::count())->toBe(0)
         ->and(LibraryEntry::count())->toBe(0);
@@ -136,7 +136,7 @@ test('adding a new Book is rejected when the Reader limit is reached', function 
     $response = $this->actingAs($reader)->post(route('library.store'), ['openlibrary_id' => 'OL893414W']);
 
     $response->assertInertiaFlash('toast.type', 'error')
-        ->assertInertiaFlash('toast.message', "You've reached the search limit. Please wait a minute and try again.");
+        ->assertInertiaFlash('toast.message', "That's a lot of searching! Take a short breather and try again in a minute.");
     expect(LibraryEntry::count())->toBe(0);
 });
 

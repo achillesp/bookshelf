@@ -11,8 +11,9 @@ import { email } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Forgot password',
-        description: 'Enter your email to receive a password reset link',
+        title: 'Forgot your password?',
+        description:
+            "It happens. Enter your email and we'll send you a reset link.",
     },
 });
 
