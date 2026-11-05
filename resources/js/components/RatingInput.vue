@@ -21,7 +21,7 @@ function choose(star: number): void {
             v-for="star in stars"
             :key="star"
             type="button"
-            class="flex size-7 items-center justify-center rounded-sm text-muted-foreground hover:text-amber-500 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+            class="flex size-7 items-center justify-center rounded-sm text-muted-foreground hover:text-star focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
             :aria-label="`${star} ${star === 1 ? 'star' : 'stars'}`"
             :aria-pressed="rating !== null && star <= rating"
             :disabled="disabled"
@@ -31,7 +31,7 @@ function choose(star: number): void {
                 class="size-4"
                 :class="
                     rating !== null && star <= rating
-                        ? 'fill-amber-400 text-amber-500'
+                        ? 'fill-star text-star'
                         : ''
                 "
             />

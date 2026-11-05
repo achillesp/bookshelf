@@ -80,7 +80,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 
 ## Task Breakdown
 
-- [ ] **Visual identity: theme, fonts, logo and favicon** (HITL: palette, font and logo review)
+- [x] **Visual identity: theme, fonts, logo and favicon** (HITL: palette, font and logo review)
   - AC: all pages render the approved palette and Fraunces/Nunito in both modes; html background matches on first paint; contrast script passes AA for every pair; no animation under reduced motion; `<link rel="preload">` only for above-the-fold weights; new logo in app and auth screens and new favicon in the tab; no Laravel mark in `resources/js` or `public/`
   - Blocked by: none
 - [ ] **Stats page backed by ReadingStats** (AFK)
@@ -120,6 +120,12 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 | 3 | extra | Font preloading | promoted (Task 1) |
 | 4 | extra | Dark-scheme favicon variant | Favicon adapts to the OS theme; 0 concepts; no requirement |
 | 5 | extra | Delete unused `ui/sidebar`, `AuthCardLayout`, `AuthSimpleLayout` | promoted (Tasks 3, 7) |
+
+## Deviations
+
+- Task 1 (HITL, 2026-11-05): the user approved the draft palette, Fraunces + Nunito and the open-book-with-steam logo as proposed, and chose the shelf wood from a set of variations: birch `#DDBF8A` / edge `#B8935B` in light, mahogany `#723124` / edge `#4A1D15` in dark (tokens `--wood`, `--wood-edge`).
+- Task 1: `AppLogoIcon.vue` already existed (the starter's Laravel mark) and was rewritten, not created. The stock `Welcome.vue` still carries the Laravel mark until Task 6 replaces the page.
+- Task 1: Inertia's progress bar uses `var(--primary)` instead of a fixed hex, so it follows the mode.
 
 ## Risks & Dependencies
 

@@ -12,8 +12,13 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.ts'],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                bunny('Nunito', {
+                    weights: [400, 600, 700],
+                    preload: [{ weight: 400 }, { weight: 700 }],
+                }),
+                bunny('Fraunces', {
+                    weights: [500, 700],
+                    preload: [{ weight: 700 }],
                 }),
             ],
         }),

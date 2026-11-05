@@ -203,7 +203,7 @@ function formatDate(date: string): string {
 
         <div
             v-if="entries.data.length === 0"
-            class="flex flex-col items-start gap-3 rounded-xl border border-dashed border-sidebar-border/70 p-6 dark:border-sidebar-border"
+            class="flex flex-col items-start gap-3 rounded-xl border border-dashed border-border p-6"
         >
             <p class="text-sm text-muted-foreground">
                 {{
@@ -224,7 +224,7 @@ function formatDate(date: string): string {
             <li
                 v-for="entry in entries.data"
                 :key="entry.id"
-                class="flex gap-4 rounded-xl border border-sidebar-border/70 p-3 dark:border-sidebar-border"
+                class="flex gap-4 rounded-xl border border-border p-3"
             >
                 <BookCover
                     :cover-id="entry.book.cover_id"

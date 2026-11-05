@@ -111,7 +111,7 @@ function addToLibrary(result: SearchResult): void {
             <li
                 v-for="result in results"
                 :key="result.openlibrary_id"
-                class="flex gap-4 rounded-xl border border-sidebar-border/70 p-3 dark:border-sidebar-border"
+                class="flex gap-4 rounded-xl border border-border p-3"
             >
                 <BookCover
                     :cover-id="result.cover_id"

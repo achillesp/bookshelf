@@ -87,7 +87,7 @@ function showYear(value: unknown): void {
                 <li v-for="status in statuses" :key="status.label">
                     <Link
                         :href="status.href"
-                        class="flex flex-col gap-1 rounded-xl border border-sidebar-border/70 p-4 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none dark:border-sidebar-border"
+                        class="flex flex-col gap-1 rounded-xl border border-border p-4 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     >
                         <span class="text-sm text-muted-foreground">
                             {{ status.label }}
@@ -102,7 +102,7 @@ function showYear(value: unknown): void {
 
         <section
             aria-labelledby="reading-heading"
-            class="flex flex-col gap-3 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
+            class="flex flex-col gap-3 rounded-xl border border-border p-4"
         >
             <h2 id="reading-heading" class="font-medium">Currently Reading</h2>
             <ul
@@ -151,7 +151,7 @@ function showYear(value: unknown): void {
         <div class="grid gap-6 lg:grid-cols-3">
             <section
                 aria-labelledby="months-heading"
-                class="flex flex-col gap-4 rounded-xl border border-sidebar-border/70 p-4 lg:col-span-2 dark:border-sidebar-border"
+                class="flex flex-col gap-4 rounded-xl border border-border p-4 lg:col-span-2"
             >
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
@@ -247,7 +247,7 @@ function showYear(value: unknown): void {
 
             <section
                 aria-labelledby="authors-heading"
-                class="flex flex-col gap-3 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
+                class="flex flex-col gap-3 rounded-xl border border-border p-4"
             >
                 <h2 id="authors-heading" class="font-medium">Top Authors</h2>
                 <ol v-if="topAuthors.length > 0" class="flex flex-col gap-2">
