@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head, router } from '@inertiajs/vue3';
-import { Check, Plus, Search } from '@lucide/vue';
+import { Check, Plus, Search as SearchIcon } from '@lucide/vue';
 import { reactive, ref } from 'vue';
 import BookCover from '@/components/BookCover.vue';
 import InputError from '@/components/InputError.vue';
@@ -49,29 +49,36 @@ function addToLibrary(result: SearchResult): void {
 <template>
     <Head title="Search" />
 
-    <div class="flex h-full flex-1 flex-col gap-6 p-4">
-        <h1 class="sr-only">Search books</h1>
+    <div class="flex flex-col gap-8 px-4 py-8">
+        <header class="flex flex-col gap-1">
+            <h1 class="text-3xl font-bold tracking-tight">
+                Find your next read
+            </h1>
+            <p class="text-muted-foreground">
+                Search the OpenLibrary catalogue and add a Book to your Library.
+            </p>
+        </header>
 
         <Form
             v-bind="search.form()"
-            class="flex flex-col gap-2"
+            class="flex flex-col gap-2 rounded-2xl border bg-card p-5 shadow-sm"
             v-slot="{ errors, processing }"
         >
-            <Label for="q">Title, author or ISBN</Label>
-            <div class="flex gap-2">
+            <Label for="q">Title, Author or ISBN</Label>
+            <div class="flex flex-col gap-2 sm:flex-row">
                 <Input
                     id="q"
                     name="q"
                     type="search"
-                    class="max-w-xl"
+                    class="h-11 sm:max-w-xl"
                     :default-value="query"
                     maxlength="200"
                     placeholder="e.g. Dune, Ursula K. Le Guin or 9780441172719"
                     :aria-invalid="errors.q ? true : undefined"
                     :aria-describedby="errors.q ? 'q-error' : undefined"
                 />
-                <Button type="submit" :disabled="processing">
-                    <Search />
+                <Button type="submit" class="h-11" :disabled="processing">
+                    <SearchIcon />
                     Search
                 </Button>
             </div>
@@ -81,42 +88,38 @@ function addToLibrary(result: SearchResult): void {
         <div aria-live="polite">
             <p
                 v-if="error"
-                class="rounded-md border border-destructive/40 bg-destructive/5 p-4 text-sm"
+                class="rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-sm"
             >
                 {{ error }}
             </p>
             <p
                 v-else-if="query !== '' && results.length === 0"
-                class="text-sm text-muted-foreground"
+                class="text-muted-foreground"
             >
-                No books found for “{{ query }}”.
+                No Books found for “{{ query }}”. Try a shorter title or just
+                the Author's name.
             </p>
             <p v-else-if="query !== ''" class="sr-only">
-                {{ results.length }} books found.
+                {{ results.length }}
+                {{ results.length === 1 ? 'Book' : 'Books' }} found.
             </p>
         </div>
 
-        <ul v-if="results.length > 0" class="flex flex-col gap-3">
+        <ul v-if="results.length > 0" class="grid gap-4 lg:grid-cols-2">
             <li
                 v-for="result in results"
                 :key="result.openlibrary_id"
-                class="flex gap-4 rounded-xl border border-border p-3"
+                class="flex gap-4 rounded-2xl border bg-card p-4 shadow-sm sm:gap-5"
             >
                 <BookCover
                     :cover-id="result.cover_id"
                     :title="result.title"
-                    class="w-16"
+                    size="L"
+                    class="w-24 rounded-l-sm rounded-r-md shadow-md sm:w-28"
                 />
                 <div class="flex min-w-0 flex-1 flex-col gap-1">
-                    <h2 class="flex flex-wrap items-center gap-2 font-medium">
+                    <h2 class="leading-snug font-bold">
                         {{ result.title }}
-                        <Badge
-                            v-if="inLibrary.includes(result.openlibrary_id)"
-                            variant="secondary"
-                        >
-                            <Check />
-                            In your Library
-                        </Badge>
                     </h2>
                     <p
                         v-if="result.authors.length > 0"
@@ -145,30 +148,36 @@ function addToLibrary(result: SearchResult): void {
                             ~{{ result.page_count_median }} pages
                         </span>
                     </p>
-                    <div
-                        v-if="!inLibrary.includes(result.openlibrary_id)"
-                        class="mt-2 flex flex-wrap items-center gap-2"
-                    >
-                        <ReadingStatusSelect
-                            :model-value="
-                                startingStatus[result.openlibrary_id] ??
-                                READING_STATUS.WANT_TO_READ
-                            "
-                            :label="`Starting status for ${result.title}`"
-                            :disabled="adding !== null"
-                            @update:model-value="
-                                startingStatus[result.openlibrary_id] = $event
-                            "
-                        />
-                        <Button
-                            size="sm"
-                            :disabled="adding !== null"
-                            :aria-label="`Add ${result.title} to your Library`"
-                            @click="addToLibrary(result)"
+                    <div class="mt-auto pt-3">
+                        <Badge
+                            v-if="inLibrary.includes(result.openlibrary_id)"
+                            class="animate-in rounded-full bg-secondary px-3 py-1 text-secondary-foreground duration-300 zoom-in-75"
                         >
-                            <Plus />
-                            Add
-                        </Button>
+                            <Check />
+                            In your Library
+                        </Badge>
+                        <div v-else class="flex flex-wrap items-center gap-2">
+                            <ReadingStatusSelect
+                                :model-value="
+                                    startingStatus[result.openlibrary_id] ??
+                                    READING_STATUS.WANT_TO_READ
+                                "
+                                :label="`Starting status for ${result.title}`"
+                                :disabled="adding !== null"
+                                @update:model-value="
+                                    startingStatus[result.openlibrary_id] =
+                                        $event
+                                "
+                            />
+                            <Button
+                                :disabled="adding !== null"
+                                :aria-label="`Add ${result.title} to your Library`"
+                                @click="addToLibrary(result)"
+                            >
+                                <Plus />
+                                Add
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </li>

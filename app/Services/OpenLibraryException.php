@@ -12,16 +12,16 @@ class OpenLibraryException extends RuntimeException
 {
     public static function unavailable(Throwable $previous): self
     {
-        return new self(__('Book search is unavailable right now. Please try again later.'), previous: $previous);
+        return new self(__("We can't reach the book catalogue right now. Give it a minute and try again."), previous: $previous);
     }
 
     public static function readerLimitReached(): self
     {
-        return new self(__("You've reached the search limit. Please wait a minute and try again."));
+        return new self(__("That's a lot of searching! Take a short breather and try again in a minute."));
     }
 
     public static function busy(): self
     {
-        return new self(__('Book search is busy right now. Please try again in a moment.'));
+        return new self(__('The book catalogue is busy right now. Try again in a moment.'));
     }
 }

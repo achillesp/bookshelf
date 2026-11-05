@@ -92,7 +92,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - [x] **Dashboard reading corner with stats summary** (AFK)
   - AC: greeting, Reading covers, 4 tiles, sparkline with sr-only table, link to Stats; new-voice empty states; `DashboardTest.php` asserts summary props and that `?year=2020` is a 200
   - Blocked by: Task 2
-- [ ] **Library shelves, quick menu, Search and Library Entry pages** (AFK)
+- [x] **Library shelves, quick menu, Search and Library Entry pages** (AFK)
   - AC: Library covers on shelf rows; Status, Rating and Remove work from each cover's menu by keyboard and touch; filters, sort, pagination unchanged; Search and Library Entry restyled with covers prominent; typing Notes then changing Status keeps the typed text; flashes reworded; Library and Search tests green
   - Blocked by: Task 1
 - [ ] **Public homepage with guest-only route** (HITL: copy and layout review)
@@ -132,6 +132,7 @@ All options share: tokens rethemed in place, Fraunces/Nunito via `bunny()`, a ne
 - Task 2 (Premise Break, patched with the user): email verification is off (`User` does not implement `MustVerifyEmail`, no `verification.notice` route), so `verified` lets every signed-in Reader through and an "unverified redirect" test cannot exist. `/stats` stays in the `auth`+`verified` group like the Dashboard; `StatsTest.php` covers the guest redirect only.
 - Task 3: the four nav items live in `resources/js/lib/mainNav.ts`, shared by `AppHeader` and `BottomTabBar`. `AppContent` now centres every page at `max-w-6xl`, and the unused `--sidebar-*` tokens were removed. The Toaster's bottom offset follows a `--toast-bottom` variable so toasts clear the bottom tabs up to `md`. The starter's unused `Breadcrumbs.vue` went with the sidebar; `library/Show.vue` lost its breadcrumbs (Task 5 restyles it).
 - Task 2: the Dashboard's inline bar chart was swapped for `MonthlyBarChart` in this task rather than Task 4, so only one copy of the chart exists.
+- Task 5: the quick menu is `components/LibraryEntryMenu.vue` (emits `status`, `rating`, `remove`) and the per-cover pill is `components/ReadingStatusBadge.vue`. The Reading pill uses mustard as a fill, so `--mustard` / `--mustard-foreground` (`#E9B949` / `#3B2A20`, 7.5:1, same in both modes) joined the tokens. When the remove dialog closes, focus returns to that Book's menu button, or to the Library heading once the Book is gone. `library/Show.vue` gained a "Back to your Library" link in place of the breadcrumbs.
 - New task (agreed with the user during Task 5): with the Vite dev server running, `public/hot` makes Inertia call `/__inertia_ssr` on the dev server, and `Http::preventStrayRequests` failed all 11 HTTP-faking `SearchTest` cases, before this branch too. SSR is now off in tests through `INERTIA_SSR_ENABLED`.
 
 ## Risks & Dependencies

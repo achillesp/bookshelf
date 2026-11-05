@@ -54,6 +54,8 @@
     --color-chart-4: var(--chart-4);
     --color-chart-5: var(--chart-5);
 
+    --color-mustard: var(--mustard);
+    --color-mustard-foreground: var(--mustard-foreground);
     --color-star: var(--star);
     --color-wood: var(--wood);
     --color-wood-edge: var(--wood-edge);
@@ -102,6 +104,8 @@
     --chart-3: #b7862a;
     --chart-4: #7a5a8c;
     --chart-5: #3f6e8c;
+    --mustard: #e9b949;
+    --mustard-foreground: #3b2a20;
     --star: #c27c0e;
     --wood: #ddbf8a;
     --wood-edge: #b8935b;
@@ -133,6 +137,8 @@
     --chart-3: #e8957a;
     --chart-4: #b9a2e0;
     --chart-5: #86b8d6;
+    --mustard: #e9b949;
+    --mustard-foreground: #3b2a20;
     --star: #f2b45a;
     --wood: #723124;
     --wood-edge: #4a1d15;

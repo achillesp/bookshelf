@@ -62,8 +62,8 @@ class LibraryEntryController extends Controller
         $title = $entry->book->title;
 
         return Inertia::flash('toast', $entry->wasRecentlyCreated
-            ? ['type' => 'success', 'message' => __('Added “:title” to your Library.', ['title' => $title])]
-            : ['type' => 'info', 'message' => __('“:title” is already in your Library.', ['title' => $title])],
+            ? ['type' => 'success', 'message' => __('“:title” just joined your Library. Happy reading!', ['title' => $title])]
+            : ['type' => 'info', 'message' => __("“:title” is already in your Library, so you're all set.", ['title' => $title])],
         )->back();
     }
 
@@ -105,7 +105,7 @@ class LibraryEntryController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => __('Removed “:title” from your Library.', ['title' => $libraryEntry->book->title]),
+            'message' => __('“:title” has left your Library.', ['title' => $libraryEntry->book->title]),
         ]);
 
         return to_route('library.index');

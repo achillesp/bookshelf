@@ -11,7 +11,7 @@ test('removing an entry deletes it but keeps the shared Book', function () {
     $response = $this->actingAs($reader)->delete(route('library.destroy', $entry));
 
     $response->assertRedirect(route('library.index'))
-        ->assertInertiaFlash('toast.message', 'Removed “Dune” from your Library.');
+        ->assertInertiaFlash('toast.message', '“Dune” has left your Library.');
     $this->assertModelMissing($entry);
     $this->assertModelExists($entry->book);
 });
