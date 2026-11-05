@@ -91,16 +91,16 @@ erDiagram
 - [x] **Dashboard stats** (AFK)
   - AC: with factory entries, shows currently Reading, status counts, monthly bars for `?year=` (select lists years with Completed entries), top 10 Authors counting co-authored Books for each; empty states for a new Reader
   - Blocked by: Task 2
-- [ ] **App-wide OpenLibrary limit** (AFK)
+- [x] **App-wide OpenLibrary limit** (AFK)
   - AC: with the per-Reader limit not reached, a 4th uncached OpenLibrary call within one second (any Readers) shows the "busy" toast and makes no HTTP call; per-Reader 20/min still applies
   - Blocked by: Task 1
-- [ ] **Library indexes** (AFK)
+- [x] **Library indexes** (AFK)
   - AC: `library_entries` has indexes `(user_id, status)` and `(user_id, finished_on)` (added to its migration; nothing is deployed); `php artisan migrate:fresh` succeeds
   - Blocked by: Task 2
-- [ ] **Starter-kit cleanup** (AFK)
+- [x] **Starter-kit cleanup** (AFK)
   - AC: sidebar footer has no starter-kit repo/docs links (`resources/js/components/AppSidebar.vue:28-39`); `.env.example` has `APP_NAME=BookShelf`
   - Blocked by: none
-- [ ] **Amend ADR-001 for the add lookup** (AFK)
+- [x] **Amend ADR-001 for the add lookup** (AFK)
   - AC: ADR-001 amended: "adding a book needs no extra API request while its search result is cached; otherwise one rate-limited lookup"
   - Blocked by: none
 

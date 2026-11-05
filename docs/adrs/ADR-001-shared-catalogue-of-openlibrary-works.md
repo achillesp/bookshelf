@@ -35,7 +35,8 @@ Alternatives considered:
 - *Edition-level Books (the Reader picks their edition)*: rejected for now. It adds an edition-picker step and an extra API request per add, and two editions of one work would have to be grouped back together for "one entry per Book" and author statistics.
 
 ## Consequences
-- Easier: one Library Entry per work, simple statistics, no duplicate catalogue rows, and adding a book needs no extra API request.
+- Easier: one Library Entry per work, simple statistics, no duplicate catalogue rows, and adding a book needs no extra API request while its search result is cached; otherwise one rate-limited lookup.
+- Adding a book sends only its work key, so Readers never write catalogue metadata. The server imports the work from its cached search result (kept 24 hours); when that has expired, it looks the work up once by key, and that lookup counts toward the same OpenLibrary limits as a search. A Book already in the catalogue needs no lookup at all.
 - Harder: Readers cannot record their exact edition's ISBN, page count or cover, and page counts are approximate. A "pages read" statistic would be approximate too.
 - The catalogue is only as correct as OpenLibrary's work data at import time.
 
