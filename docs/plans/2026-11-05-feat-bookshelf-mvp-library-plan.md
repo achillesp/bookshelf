@@ -82,7 +82,7 @@ erDiagram
 - [x] **Add a search result to the Library** (AFK)
   - AC: Add defaults to Want to Read; creates Book, Authors, entry with auto-filled dates; adding right after a search makes no HTTP call (per-work cache); existing Book makes no HTTP call; uncached new Book counts toward the rate limit; result then shows "In your Library"; duplicate rejected; OpenLibrary down on a new Book → error toast, no rows
   - Blocked by: Task 1
-- [ ] **Library page: browse, quick edit, remove** (AFK)
+- [x] **Library page: browse, quick edit, remove** (AFK)
   - AC: filter/sort/paginate keep the query string; inline status/rating persist and apply date rules; remove after confirm; other Readers' entries → 404; Library in sidebar
   - Blocked by: Task 2
 - [ ] **Library Entry page: dates and Notes** (AFK)

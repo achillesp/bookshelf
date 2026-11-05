@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, Search } from '@lucide/vue';
+import { BookOpen, FolderGit2, LayoutGrid, Library, Search } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -15,6 +15,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard, search } from '@/routes';
+import { index as library } from '@/routes/library';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -27,6 +28,11 @@ const mainNavItems: NavItem[] = [
         title: 'Search',
         href: search(),
         icon: Search,
+    },
+    {
+        title: 'Library',
+        href: library(),
+        icon: Library,
     },
 ];
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\CarbonImmutable;
 use Database\Factories\AuthorFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property CarbonImmutable|null $updated_at
  */
 #[Fillable(['openlibrary_id', 'name'])]
+#[Hidden(['pivot'])]
 class Author extends Model
 {
     /** @use HasFactory<AuthorFactory> */

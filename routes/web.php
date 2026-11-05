@@ -9,7 +9,10 @@ Route::inertia('/', 'Welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
     Route::get('search', SearchController::class)->name('search');
+    Route::get('library', [LibraryEntryController::class, 'index'])->name('library.index');
     Route::post('library', [LibraryEntryController::class, 'store'])->name('library.store');
+    Route::patch('library/{entry}', [LibraryEntryController::class, 'update'])->whereNumber('entry')->name('library.update');
+    Route::delete('library/{entry}', [LibraryEntryController::class, 'destroy'])->whereNumber('entry')->name('library.destroy');
 });
 
 require __DIR__.'/settings.php';
