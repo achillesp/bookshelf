@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import { Link } from '@inertiajs/vue3';
+import AppLogo from '@/components/AppLogo.vue';
+import ReadingNook from '@/components/decor/ReadingNook.vue';
 import { home } from '@/routes';
-
-const page = usePage();
-const name = page.props.name;
 
 defineProps<{
     title?: string;
@@ -13,35 +11,45 @@ defineProps<{
 </script>
 
 <template>
-    <div
-        class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0"
-    >
-        <div
-            class="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r"
+    <div class="grid min-h-dvh bg-background lg:grid-cols-2">
+        <aside
+            class="relative hidden flex-col justify-between gap-10 overflow-hidden border-r bg-card p-10 lg:flex"
         >
-            <div class="absolute inset-0 bg-zinc-900" />
             <Link
                 :href="home()"
-                class="relative z-20 flex items-center text-lg font-medium"
+                class="flex items-center self-start rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
-                <AppLogoIcon class="mr-2 size-8 text-white" />
-                {{ name }}
+                <AppLogo />
             </Link>
-        </div>
-        <div class="lg:p-8">
-            <div
-                class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]"
+            <ReadingNook class="mx-auto h-auto w-full max-w-lg" />
+            <p
+                class="max-w-sm font-display text-2xl leading-snug font-bold text-balance"
             >
-                <div class="flex flex-col space-y-2 text-center">
-                    <h1 class="text-xl font-medium tracking-tight" v-if="title">
+                Every Book you want to read, are reading and have finished, in
+                one cozy corner.
+            </p>
+        </aside>
+
+        <main
+            class="flex flex-col items-center justify-center px-4 py-10 sm:px-8"
+        >
+            <div class="flex w-full max-w-sm flex-col gap-8">
+                <Link
+                    :href="home()"
+                    class="flex items-center self-center rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none lg:hidden"
+                >
+                    <AppLogo />
+                </Link>
+                <div class="flex flex-col gap-2 text-center lg:text-left">
+                    <h1 v-if="title" class="text-3xl font-bold tracking-tight">
                         {{ title }}
                     </h1>
-                    <p class="text-sm text-muted-foreground" v-if="description">
+                    <p v-if="description" class="text-muted-foreground">
                         {{ description }}
                     </p>
                 </div>
                 <slot />
             </div>
-        </div>
+        </main>
     </div>
 </template>
