@@ -29,7 +29,15 @@ const props = defineProps<{
     years: number[];
     completedPerMonth: number[];
     pagesPerMonth: number[];
-    topAuthors: { id: number; name: string; completed_books: number }[];
+    topAuthors: {
+        id: number;
+        name: string;
+        total_books: number;
+        want_to_read: number;
+        reading: number;
+        completed: number;
+        average_rating: number | null;
+    }[];
 }>();
 
 const STATUS_ICONS = {
@@ -63,6 +71,10 @@ const completedInYear = computed(() =>
 
 const pagesInYear = computed(() =>
     props.pagesPerMonth.reduce((total, pages) => total + pages, 0),
+);
+
+const mostBooksByOneAuthor = computed(() =>
+    Math.max(1, ...props.topAuthors.map((author) => author.total_books)),
 );
 
 const completedTableId = useId();
@@ -267,27 +279,90 @@ function showYear(value: unknown): void {
             class="flex flex-col gap-4 rounded-2xl border bg-card p-5 shadow-sm"
         >
             <h2 id="authors-heading" class="text-xl font-bold">Top Authors</h2>
-            <ol v-if="topAuthors.length > 0" class="flex flex-col gap-2.5">
-                <li
-                    v-for="(author, position) in topAuthors"
-                    :key="author.id"
-                    class="flex items-baseline gap-3 text-sm"
-                >
-                    <span
-                        class="w-5 text-right font-display font-bold text-primary tabular-nums"
-                    >
-                        {{ position + 1 }}
-                    </span>
-                    <span class="min-w-0 flex-1 truncate font-semibold">
-                        {{ author.name }}
-                    </span>
-                    <span class="text-muted-foreground tabular-nums">
-                        {{ books(author.completed_books) }}
-                    </span>
-                </li>
-            </ol>
+            <div
+                v-if="topAuthors.length > 0"
+                class="-mx-5 overflow-x-auto px-5"
+            >
+                <table class="w-full min-w-xl text-sm">
+                    <thead>
+                        <tr class="border-b text-left text-muted-foreground">
+                            <th scope="col" class="w-8 py-2 pr-2 font-medium">
+                                <span aria-hidden="true">#</span>
+                                <span class="sr-only">Rank</span>
+                            </th>
+                            <th scope="col" class="py-2 pr-4 font-medium">
+                                Author
+                            </th>
+                            <th scope="col" class="w-1/4 py-2 pr-4 font-medium">
+                                Total
+                            </th>
+                            <th
+                                v-for="status in READING_STATUS"
+                                :key="status"
+                                scope="col"
+                                class="py-2 pr-4 text-right font-medium"
+                            >
+                                {{ READING_STATUS_LABELS[status] }}
+                            </th>
+                            <th scope="col" class="py-2 text-right font-medium">
+                                Avg Rating
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        <tr
+                            v-for="(author, position) in topAuthors"
+                            :key="author.id"
+                        >
+                            <td
+                                class="py-2.5 pr-2 font-display font-bold text-primary tabular-nums"
+                            >
+                                {{ position + 1 }}
+                            </td>
+                            <th
+                                scope="row"
+                                class="py-2.5 pr-4 text-left font-semibold"
+                            >
+                                {{ author.name }}
+                            </th>
+                            <td class="py-2.5 pr-4">
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="w-6 shrink-0 font-semibold tabular-nums"
+                                    >
+                                        {{ author.total_books }}
+                                    </span>
+                                    <span
+                                        aria-hidden="true"
+                                        class="h-2.5 rounded-full bg-primary"
+                                        :style="{
+                                            width: `${(author.total_books / mostBooksByOneAuthor) * 100}%`,
+                                        }"
+                                    />
+                                </div>
+                            </td>
+                            <td
+                                v-for="status in READING_STATUS"
+                                :key="status"
+                                class="py-2.5 pr-4 text-right tabular-nums"
+                            >
+                                {{ author[status] }}
+                            </td>
+                            <td class="py-2.5 text-right tabular-nums">
+                                <template v-if="author.average_rating !== null">
+                                    {{ author.average_rating.toFixed(1) }}
+                                </template>
+                                <template v-else>
+                                    <span aria-hidden="true">—</span>
+                                    <span class="sr-only">Not rated</span>
+                                </template>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <p v-else class="text-sm text-muted-foreground">
-                Finish your first Book and its Author takes a seat here.
+                Add your first Book and its Author takes a seat here.
             </p>
         </section>
     </div>

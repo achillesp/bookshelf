@@ -78,28 +78,43 @@ class ReadingStats
     }
 
     /**
-     * Authors with the most Completed Books; a co-written Book counts for each of its Authors.
+     * Authors with the most Books in the Library (any Reading Status), ties broken by Completed Books then name.
+     * A co-written Book counts for each of its Authors. The average Rating skips unrated Books and is null when none are rated.
      *
-     * @return list<array{id: int, name: string, completed_books: int}>
+     * @return list<array{id: int, name: string, total_books: int, want_to_read: int, reading: int, completed: int, average_rating: float|null}>
      */
     public function topAuthors(User $reader): array
     {
-        return array_values($reader->libraryEntries()
+        $query = $reader->libraryEntries()
             ->toBase()
             ->join('author_book', 'author_book.book_id', '=', 'library_entries.book_id')
             ->join('authors', 'authors.id', '=', 'author_book.author_id')
-            ->where('library_entries.status', ReadingStatus::Completed->value)
             ->groupBy('authors.id', 'authors.name')
             ->select('authors.id', 'authors.name')
-            ->selectRaw('count(*) as completed_books')
-            ->orderByDesc('completed_books')
+            ->selectRaw('count(*) as total_books')
+            ->selectRaw('avg(library_entries.rating) as average_rating');
+
+        foreach (ReadingStatus::cases() as $status) {
+            $query->selectRaw(
+                "sum(case when library_entries.status = ? then 1 else 0 end) as {$status->value}",
+                [$status->value],
+            );
+        }
+
+        return array_values($query
+            ->orderByDesc('total_books')
+            ->orderByDesc(ReadingStatus::Completed->value)
             ->orderBy('authors.name')
             ->limit(self::TOP_AUTHORS)
             ->get()
             ->map(fn (object $row): array => [
                 'id' => (int) $row->id,
                 'name' => (string) $row->name,
-                'completed_books' => (int) $row->completed_books,
+                'total_books' => (int) $row->total_books,
+                'want_to_read' => (int) $row->{ReadingStatus::WantToRead->value},
+                'reading' => (int) $row->{ReadingStatus::Reading->value},
+                'completed' => (int) $row->{ReadingStatus::Completed->value},
+                'average_rating' => $row->average_rating === null ? null : round((float) $row->average_rating, 1),
             ])
             ->all());
     }

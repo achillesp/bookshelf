@@ -81,7 +81,7 @@ Request in conversation, 2026-11-06 (quoted in Premises); no ticket or brainstor
   - AC: each chart card's toggle shows and hides its data table with matching `aria-expanded`/`aria-controls`; closed charts and the Dashboard sparkline expose the summary sentence; an open table stays open after a year change; `types:check` passes
   - AC: Pest partial-reload test sends `X-Inertia`, `X-Inertia-Partial-Component: stats/Index` and `X-Inertia-Partial-Data` together (or uses `reloadOnly`) and gets only the chart props for the chosen year, with no `statusCounts`, `years` or `topAuthors`; browser network tab shows the same
   - Blocked by: Task 1
-- [ ] **Top Authors table with status columns, bar and average Rating** (AFK)
+- [x] **Top Authors table with status columns, bar and average Rating** (AFK)
   - AC: updated Pest test covers ranking by total, per-status counts, average Rating with unrated entries and all-unrated `null`, other Readers excluded; table renders
   - Blocked by: none
 
