@@ -74,7 +74,7 @@ class ReadingStats
             $pagesPerMonth[$month] += (int) $entry->page_count_median;
         }
 
-        return ['completedPerMonth' => $completedPerMonth, 'pagesPerMonth' => $pagesPerMonth];
+        return ['completedPerMonth' => array_values($completedPerMonth), 'pagesPerMonth' => array_values($pagesPerMonth)];
     }
 
     /**

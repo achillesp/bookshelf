@@ -52,38 +52,38 @@ Request in conversation, 2026-11-06 (quoted in Premises); no ticket or brainstor
 - `StatsController` (`app/Http/Controllers/StatsController.php:20`): `statusCounts`, `years` and `topAuthors` as closures; `monthlyTotals()` called once inside a shared closure-memoized value feeding `completedPerMonth` and `pagesPerMonth`, so a partial reload computes only what it asks for. `showYear` (`resources/js/pages/stats/Index.vue:49`) keeps `preserveScroll`/`preserveState` and adds `only: ['year', 'completedPerMonth', 'pagesPerMonth']`.
 - `MonthlyBarChart.vue`: `label` (default "Completed Books") drives caption ("{label} per month in {year}") and column header; `formatValue` (default plain count) formats tooltip and cells, so pages read `~3,120 pages` (ADR-001); `showTable` renders the table visibly with `v-if` and its `id` comes from `useId()`; when the table is closed (and always on the compact sparkline) an sr-only sentence summarises the chart, e.g. "8 Books finished in 2026, most in March (3)." The bars stay `aria-hidden`.
 - `stats/Index.vue`:
-  - Tiles: "Total in Library" first (sum, links to `library()`); grid `sm:grid-cols-2 lg:grid-cols-4`.
-  - One year Select in a row above the charts, moved from the Completed card and still bound to `year` (`:126`); `aria-busy` on the charts row while the reload runs.
-  - Charts in `grid lg:grid-cols-2`: Completed card and "Pages read by month" card (subtitle like `:113`, e.g. "~3,120 pages read in 2026."). Each card: `Button` "Show data"/"Hide data" with `aria-expanded` and `aria-controls` set to the chart's table id.
-  - Top Authors: full-width card, `<table>` with rank, Author, Total (number + `aria-hidden` bar scaled to the top total), Want to Read, Reading, Completed, Avg Rating; `overflow-x-auto` inside the card.
+    - Tiles: "Total in Library" first (sum, links to `library()`); grid `sm:grid-cols-2 lg:grid-cols-4`.
+    - One year Select in a row above the charts, moved from the Completed card and still bound to `year` (`:126`); `aria-busy` on the charts row while the reload runs.
+    - Charts in `grid lg:grid-cols-2`: Completed card and "Pages read by month" card (subtitle like `:113`, e.g. "~3,120 pages read in 2026."). Each card: `Button` "Show data"/"Hide data" with `aria-expanded` and `aria-controls` set to the chart's table id.
+    - Top Authors: full-width card, `<table>` with rank, Author, Total (number + `aria-hidden` bar scaled to the top total), Want to Read, Reading, Completed, Avg Rating; `overflow-x-auto` inside the card.
 
 ## Acceptance Criteria
 
-- [ ] Four tiles, "Total in Library" first, equal to the sum of the status tiles
-- [ ] Pages-read chart beside the Completed chart on wide screens, stacked on phones; one year Select changes both
-- [ ] Pages per month = sum of `page_count_median` of the Reader's Completed Books finished that month; the card subtitle gives the year's total
-- [ ] Changing the year fetches only the chart props; tiles and Authors table are not recomputed
-- [ ] Each chart card's button shows/hides a month-by-month table inside the card; `aria-expanded` matches; a closed chart (and the Dashboard sparkline) gives screen readers a one-line summary
-- [ ] Dashboard loads only the current year's monthly totals; its sparkline looks and reads the same
-- [ ] Top Authors: top 10 by total Books with bar, Want to Read, Reading, Completed, Avg Rating (`—` when unrated); a co-written Book counts for each Author
-- [ ] No horizontal page scroll at 360px; bar meets WCAG 2.2 AA non-text contrast in light and dark mode
+- [x] Four tiles, "Total in Library" first, equal to the sum of the status tiles
+- [x] Pages-read chart beside the Completed chart on wide screens, stacked on phones; one year Select changes both
+- [x] Pages per month = sum of `page_count_median` of the Reader's Completed Books finished that month; the card subtitle gives the year's total
+- [x] Changing the year fetches only the chart props; tiles and Authors table are not recomputed
+- [x] Each chart card's button shows/hides a month-by-month table inside the card; `aria-expanded` matches; a closed chart (and the Dashboard sparkline) gives screen readers a one-line summary
+- [x] Dashboard loads only the current year's monthly totals; its sparkline looks and reads the same
+- [x] Top Authors: top 10 by total Books with bar, Want to Read, Reading, Completed, Avg Rating (`—` when unrated); a co-written Book counts for each Author
+- [x] No horizontal page scroll at 360px; bar meets WCAG 2.2 AA non-text contrast in light and dark mode
 
 ## Task Breakdown
 
 - [x] **Dashboard loads only this year's monthly totals** (AFK, prefactor: no visible change)
-  - AC: `completedYears()` + `monthlyTotals()` replace `completedByYear()`; Dashboard and Stats render as before; existing `StatsTest` and `DashboardTest` pass unchanged
-  - Blocked by: none
+    - AC: `completedYears()` + `monthlyTotals()` replace `completedByYear()`; Dashboard and Stats render as before; existing `StatsTest` and `DashboardTest` pass unchanged
+    - Blocked by: none
 - [x] **Total in Library tile** (AFK)
-  - AC: four tiles, total first and correct
-  - Blocked by: none
+    - AC: four tiles, total first and correct
+    - Blocked by: none
 - [x] **Side-by-side Completed and pages-read charts with data tables, under one year Select that reloads only the charts** (AFK)
-  - AC: Pest test for `pagesPerMonth` (chosen year, this Reader only, null page count adds 0); both charts follow the year; Dashboard sparkline unchanged
-  - AC: each chart card's toggle shows and hides its data table with matching `aria-expanded`/`aria-controls`; closed charts and the Dashboard sparkline expose the summary sentence; an open table stays open after a year change; `types:check` passes
-  - AC: Pest partial-reload test sends `X-Inertia`, `X-Inertia-Partial-Component: stats/Index` and `X-Inertia-Partial-Data` together (or uses `reloadOnly`) and gets only the chart props for the chosen year, with no `statusCounts`, `years` or `topAuthors`; browser network tab shows the same
-  - Blocked by: Task 1
+    - AC: Pest test for `pagesPerMonth` (chosen year, this Reader only, null page count adds 0); both charts follow the year; Dashboard sparkline unchanged
+    - AC: each chart card's toggle shows and hides its data table with matching `aria-expanded`/`aria-controls`; closed charts and the Dashboard sparkline expose the summary sentence; an open table stays open after a year change; `types:check` passes
+    - AC: Pest partial-reload test sends `X-Inertia`, `X-Inertia-Partial-Component: stats/Index` and `X-Inertia-Partial-Data` together (or uses `reloadOnly`) and gets only the chart props for the chosen year, with no `statusCounts`, `years` or `topAuthors`; browser network tab shows the same
+    - Blocked by: Task 1
 - [x] **Top Authors table with status columns, bar and average Rating** (AFK)
-  - AC: updated Pest test covers ranking by total, per-status counts, average Rating with unrated entries and all-unrated `null`, other Readers excluded; table renders
-  - Blocked by: none
+    - AC: updated Pest test covers ranking by total, per-status counts, average Rating with unrated entries and all-unrated `null`, other Readers excluded; table renders
+    - Blocked by: none
 
 ## Verification
 
@@ -94,11 +94,11 @@ Request in conversation, 2026-11-06 (quoted in Premises); no ticket or brainstor
 
 ## Not in MVP
 
-| # | Kind | Item | Detail |
-| --- | --- | --- | --- |
-| 1 | extra | "N Completed Books without a page count" note on the pages card | Honest about gaps; 1 concept (count prop); local data has none missing among Completed |
-| 2 | extra | Partial reload (`only: [...]`) on year change | **promoted** (Task 3) |
-| 3 | extra | Totals row in the data tables | Declined: year totals go in each chart's subtitle instead |
+| #   | Kind  | Item                                                            | Detail                                                                                 |
+| --- | ----- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1   | extra | "N Completed Books without a page count" note on the pages card | Honest about gaps; 1 concept (count prop); local data has none missing among Completed |
+| 2   | extra | Partial reload (`only: [...]`) on year change                   | **promoted** (Task 3)                                                                  |
+| 3   | extra | Totals row in the data tables                                   | Declined: year totals go in each chart's subtitle instead                              |
 
 ## Deviations
 
