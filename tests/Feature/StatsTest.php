@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ReadingStatus;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\LibraryEntry;
@@ -66,6 +67,21 @@ test('stats add up the approximate pages of Completed Books per month for the ch
     $response->assertInertia(fn (Assert $page) => $page
         ->where('completedPerMonth', [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1])
         ->where('pagesPerMonth', [412, 0, 480, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+    );
+});
+
+test('stats count a Book Completed on the last day of the year in December', function () {
+    $reader = User::factory()->create();
+    $entry = LibraryEntry::factory()->for($reader)->reading('2025-12-01')->create();
+    $this->travelTo('2025-12-31 18:00:00');
+    $entry->changeStatus(ReadingStatus::Completed);
+    $entry->save();
+    $this->travelTo('2026-11-05 10:00:00');
+
+    $response = $this->actingAs($reader)->get(route('stats', ['year' => 2025]));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('completedPerMonth', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
     );
 });
 
