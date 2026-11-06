@@ -50,25 +50,31 @@ class ReadingStats
     }
 
     /**
-     * Completed Books per month of the chosen year, January first.
+     * Completed Books and their approximate pages per month of the chosen year, January first.
+     * A Book without a page count adds no pages.
      *
-     * @return array{completedPerMonth: list<int>}
+     * @return array{completedPerMonth: list<int>, pagesPerMonth: list<int>}
      */
     public function monthlyTotals(User $reader, int $year): array
     {
-        $finishedDates = $reader->libraryEntries()
-            ->where('status', ReadingStatus::Completed)
-            ->where('finished_on', '>=', CarbonImmutable::create($year)->toDateString())
-            ->where('finished_on', '<', CarbonImmutable::create($year + 1)->toDateString())
-            ->pluck('finished_on');
+        $completedEntries = $reader->libraryEntries()
+            ->toBase()
+            ->join('books', 'books.id', '=', 'library_entries.book_id')
+            ->where('library_entries.status', ReadingStatus::Completed->value)
+            ->where('library_entries.finished_on', '>=', CarbonImmutable::create($year)->toDateString())
+            ->where('library_entries.finished_on', '<', CarbonImmutable::create($year + 1)->toDateString())
+            ->get(['library_entries.finished_on', 'books.page_count_median']);
 
         $completedPerMonth = array_fill(0, 12, 0);
+        $pagesPerMonth = array_fill(0, 12, 0);
 
-        foreach ($finishedDates as $date) {
-            $completedPerMonth[CarbonImmutable::parse($date)->month - 1]++;
+        foreach ($completedEntries as $entry) {
+            $month = CarbonImmutable::parse($entry->finished_on)->month - 1;
+            $completedPerMonth[$month]++;
+            $pagesPerMonth[$month] += (int) $entry->page_count_median;
         }
 
-        return ['completedPerMonth' => $completedPerMonth];
+        return ['completedPerMonth' => $completedPerMonth, 'pagesPerMonth' => $pagesPerMonth];
     }
 
     /**

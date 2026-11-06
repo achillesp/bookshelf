@@ -4,6 +4,8 @@ use App\Models\Author;
 use App\Models\Book;
 use App\Models\LibraryEntry;
 use App\Models\User;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('guests are redirected to the login page', function () {
@@ -46,6 +48,51 @@ test('stats count Completed Books per month for the chosen year', function () {
         ->where('years', [2026, 2025, 2024])
         ->where('completedPerMonth', [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
     );
+});
+
+test('stats add up the approximate pages of Completed Books per month for the chosen year', function () {
+    $this->travelTo('2026-11-05 10:00:00');
+    $reader = User::factory()->create();
+    LibraryEntry::factory()->for($reader)->completed('2025-01-31')->for(Book::factory()->state(['page_count_median' => 412]))->create();
+    LibraryEntry::factory()->for($reader)->completed('2025-03-01')->for(Book::factory()->state(['page_count_median' => 300]))->create();
+    LibraryEntry::factory()->for($reader)->completed('2025-03-31')->for(Book::factory()->state(['page_count_median' => 180]))->create();
+    LibraryEntry::factory()->for($reader)->completed('2025-12-31')->for(Book::factory()->state(['page_count_median' => null]))->create();
+    LibraryEntry::factory()->for($reader)->completed('2024-06-15')->for(Book::factory()->state(['page_count_median' => 500]))->create();
+    LibraryEntry::factory()->for($reader)->reading()->for(Book::factory()->state(['page_count_median' => 250]))->create();
+    LibraryEntry::factory()->completed('2025-03-15')->for(Book::factory()->state(['page_count_median' => 999]))->create();
+
+    $response = $this->actingAs($reader)->get(route('stats', ['year' => 2025]));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('completedPerMonth', [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1])
+        ->where('pagesPerMonth', [412, 0, 480, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+    );
+});
+
+test('changing the year reloads and computes only the chart props for that year', function () {
+    $this->travelTo('2026-11-05 10:00:00');
+    $reader = User::factory()->create();
+    LibraryEntry::factory()->for($reader)->completed('2025-03-01')->for(Book::factory()->state(['page_count_median' => 300]))->create();
+    LibraryEntry::factory()->for($reader)->completed('2026-02-01')->create();
+    $response = $this->actingAs($reader)->get(route('stats', ['year' => 2025]));
+    $libraryEntryQueries = 0;
+    DB::listen(function (QueryExecuted $query) use (&$libraryEntryQueries) {
+        if (str_contains($query->sql, 'library_entries')) {
+            $libraryEntryQueries++;
+        }
+    });
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->reloadOnly(['year', 'completedPerMonth', 'pagesPerMonth'], fn (Assert $reload) => $reload
+            ->where('year', 2025)
+            ->where('completedPerMonth', [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+            ->where('pagesPerMonth', [0, 0, 300, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+            ->missing('statusCounts')
+            ->missing('years')
+            ->missing('topAuthors'),
+        ),
+    );
+    expect($libraryEntryQueries)->toBe(1);
 });
 
 test('stats default to the current year and list it even without Completed Books', function () {

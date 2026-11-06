@@ -73,10 +73,10 @@ Request in conversation, 2026-11-06 (quoted in Premises); no ticket or brainstor
 - [x] **Dashboard loads only this year's monthly totals** (AFK, prefactor: no visible change)
   - AC: `completedYears()` + `monthlyTotals()` replace `completedByYear()`; Dashboard and Stats render as before; existing `StatsTest` and `DashboardTest` pass unchanged
   - Blocked by: none
-- [ ] **Total in Library tile** (AFK)
+- [x] **Total in Library tile** (AFK)
   - AC: four tiles, total first and correct
   - Blocked by: none
-- [ ] **Side-by-side Completed and pages-read charts with data tables, under one year Select that reloads only the charts** (AFK)
+- [x] **Side-by-side Completed and pages-read charts with data tables, under one year Select that reloads only the charts** (AFK)
   - AC: Pest test for `pagesPerMonth` (chosen year, this Reader only, null page count adds 0); both charts follow the year; Dashboard sparkline unchanged
   - AC: each chart card's toggle shows and hides its data table with matching `aria-expanded`/`aria-controls`; closed charts and the Dashboard sparkline expose the summary sentence; an open table stays open after a year change; `types:check` passes
   - AC: Pest partial-reload test sends `X-Inertia`, `X-Inertia-Partial-Component: stats/Index` and `X-Inertia-Partial-Data` together (or uses `reloadOnly`) and gets only the chart props for the chosen year, with no `statusCounts`, `years` or `topAuthors`; browser network tab shows the same
@@ -99,3 +99,9 @@ Request in conversation, 2026-11-06 (quoted in Premises); no ticket or brainstor
 | 1 | extra | "N Completed Books without a page count" note on the pages card | Honest about gaps; 1 concept (count prop); local data has none missing among Completed |
 | 2 | extra | Partial reload (`only: [...]`) on year change | **promoted** (Task 3) |
 | 3 | extra | Totals row in the data tables | Declined: year totals go in each chart's subtitle instead |
+
+## Deviations
+
+- `MonthlyBarChart` takes the table id as a `tableId` prop instead of calling `useId()` itself: the toggle button that needs it for `aria-controls` lives in the parent card, so each card calls `useId()` and passes the id down. The id sits on a container that is always rendered, so `aria-controls` always resolves.
+- The compact Dashboard sparkline no longer renders its hidden month-by-month table; its screen-reader summary sentence replaces it (user decision, 2026-11-06).
+- The partial-reload test also counts `library_entries` queries during the reload: Inertia drops unrequested props from the response even when they were computed, so only the query count shows that tiles and Authors are not recomputed.
