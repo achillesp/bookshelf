@@ -27,7 +27,7 @@ class DashboardController extends Controller
                 ->get(),
             'statusCounts' => $stats->statusCounts($reader),
             'year' => $year,
-            'completedPerMonth' => $stats->completedByYear($reader, $year)['completedPerMonth'],
+            'completedPerMonth' => $stats->monthlyTotals($reader, $year)['completedPerMonth'],
         ]);
     }
 }

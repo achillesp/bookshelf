@@ -20,7 +20,8 @@ class StatsController extends Controller
         return Inertia::render('stats/Index', [
             'statusCounts' => $stats->statusCounts($reader),
             'year' => $year,
-            ...$stats->completedByYear($reader, $year),
+            'years' => $stats->completedYears($reader),
+            ...$stats->monthlyTotals($reader, $year),
             'topAuthors' => $stats->topAuthors($reader),
         ]);
     }

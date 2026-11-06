@@ -32,34 +32,43 @@ class ReadingStats
     }
 
     /**
-     * Years with Completed Books (plus the current year), and Completed Books per month of the chosen year.
+     * Years with Completed Books, plus the current year, newest first.
      *
-     * @return array{years: list<int>, completedPerMonth: list<int>}
+     * @return list<int>
      */
-    public function completedByYear(User $reader, int $year): array
+    public function completedYears(User $reader): array
     {
-        $finishedDates = $reader->libraryEntries()
+        return array_values($reader->libraryEntries()
             ->where('status', ReadingStatus::Completed)
             ->whereNotNull('finished_on')
             ->pluck('finished_on')
-            ->map(fn (mixed $date): CarbonImmutable => CarbonImmutable::parse($date));
-
-        $years = array_values($finishedDates
-            ->map(fn (CarbonImmutable $date): int => $date->year)
+            ->map(fn (mixed $date): int => CarbonImmutable::parse($date)->year)
             ->push(now()->year)
             ->unique()
             ->sortDesc()
             ->all());
+    }
 
-        $perMonth = array_fill(0, 12, 0);
+    /**
+     * Completed Books per month of the chosen year, January first.
+     *
+     * @return array{completedPerMonth: list<int>}
+     */
+    public function monthlyTotals(User $reader, int $year): array
+    {
+        $finishedDates = $reader->libraryEntries()
+            ->where('status', ReadingStatus::Completed)
+            ->where('finished_on', '>=', CarbonImmutable::create($year)->toDateString())
+            ->where('finished_on', '<', CarbonImmutable::create($year + 1)->toDateString())
+            ->pluck('finished_on');
+
+        $completedPerMonth = array_fill(0, 12, 0);
 
         foreach ($finishedDates as $date) {
-            if ($date->year === $year) {
-                $perMonth[$date->month - 1]++;
-            }
+            $completedPerMonth[CarbonImmutable::parse($date)->month - 1]++;
         }
 
-        return ['years' => $years, 'completedPerMonth' => array_values($perMonth)];
+        return ['completedPerMonth' => $completedPerMonth];
     }
 
     /**

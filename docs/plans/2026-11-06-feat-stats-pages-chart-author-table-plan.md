@@ -70,7 +70,7 @@ Request in conversation, 2026-11-06 (quoted in Premises); no ticket or brainstor
 
 ## Task Breakdown
 
-- [ ] **Dashboard loads only this year's monthly totals** (AFK, prefactor: no visible change)
+- [x] **Dashboard loads only this year's monthly totals** (AFK, prefactor: no visible change)
   - AC: `completedYears()` + `monthlyTotals()` replace `completedByYear()`; Dashboard and Stats render as before; existing `StatsTest` and `DashboardTest` pass unchanged
   - Blocked by: none
 - [ ] **Total in Library tile** (AFK)
